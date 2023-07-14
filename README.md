@@ -3,6 +3,10 @@
 ## What is this
 Read the Exif of the photo image, add a frame to the image and paste the Exif content to the image.  
 
+## Requirements
+* [ImageMagick](https://imagemagick.org/index.php)
+* [exiftool](https://exiftool.org/)
+
 ## Install
 Make the script addframe executable and place it in a directory in your path.
 
