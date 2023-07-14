@@ -6,81 +6,89 @@ left="32"		# 左辺幅
 right="32"		# 右辺幅
 bottom="128"	# 下辺幅
 
-for tfile in $files
-do
-  echo $tfile
-  width=`identify -format '%w' $tfile`
-  height=`identify -format '%h' $tfile`
-  if [ $width -gt $height ]; then
-	convert "$tfile" \
-		-resize "${length}x" \
-		-mattecolor "#fff" \
-		-splice ${left}x${top} \
-		-quality 100 tmp1.webp
-	convert tmp1.webp \
-		-gravity southeast \
-		-mattecolor "#fff" \
-		-splice ${right}x${bottom} \
-		-quality 100 tmp2.webp
-	rm tmp1.webp
-  else
-	convert "$tfile" \
-		-resize "x${length}" \
-		-mattecolor "#fff" \
-		-splice ${left}x${top} \
-		-quality 100 tmp1.webp
-	convert tmp1.webp \
-		-gravity southeast \
-		-mattecolor "#fff" \
-		-splice ${right}x${bottom} \
-		-quality 100 tmp2.webp
-	rm tmp1.webp
-  fi
-done
-
-# color Shot on 0x838383
-#
-
-#copyright="Mitsugu Oyama \( OrzBruford \)"
-date=`exiftool -s -DateTimeOriginal -T $1`
-make=`exiftool -s -Make -T $1`
-camera=`exiftool -s -Model -T $1`
-lens=`exiftool -s -LensModel -T $1`
-echo ${lens}
-if [ "${lens}" == "" ]; then
-	lens=`exiftool -s -LensID -T $1`
+if [ $# -lt 2 ]; then
+	echo "Usage :"
+	echo "    addframe <filename> <output_directory>"
+	echo "        filename : you can use wildcards."
+	echo "        output_firectory : output directory name"
+	exit
 fi
-iso=`exiftool -s -ISO -T $1`
-fnumber=`exiftool -s -FNumber -T $1`
-ss=`exiftool -s -ShutterSpeed -T $1`
-soft=`exiftool -s -Software -T $1`
-font=Arial
 
-convert -font ${font} \
-		-pointsize "24" \
-		-fill black \
-		-gravity south \
-		-annotate +0+64 "Shot on ${camera}" \
-		-quality 100 \
-		tmp2.webp \
-		tmp3.webp
-rm tmp2.webp
-convert -font ${font} \
-		-pointsize "16" \
-		-fill black \
-		-gravity south \
-		-annotate +0+40 "${make}" \
-		-quality 100 \
-		tmp3.webp \
-		tmp4.webp
-rm tmp3.webp
-convert -font ${font} \
-		-pointsize "16" \
-		-fill "#838383" \
-		-gravity south \
-		-annotate +0+16 "$lens f${fnumber} ${ss}s ISO${iso}" \
-		-quality 100 \
-		tmp4.webp \
-		${2}
-rm tmp4.webp
+addExifData() {
+	copyright=`exiftool -s -Copyright -T $1`
+	copyright=${copyright}" \( OrzBruford \)"
+	date=`exiftool -s -DateTimeOriginal -T $1`
+	make=`exiftool -s -Make -T $1`
+	camera=`exiftool -s -Model -T $1`
+	lens=`exiftool -s -LensModel -T $1`
+	if [ "${lens}" == "" ]; then
+		lens=`exiftool -s -LensID -T $1`
+	fi
+	iso=`exiftool -s -ISO -T $1`
+	fnumber=`exiftool -s -FNumber -T $1`
+	ss=`exiftool -s -ShutterSpeed -T $1`
+	soft=`exiftool -s -Software -T $1`
+	font=Arial
+
+	convert -font ${font} \
+			-pointsize "24" \
+			-fill black \
+			-gravity south \
+			-annotate +0+64 "Shot on ${camera}" \
+			-quality 100 \
+			tmp2.webp \
+			tmp3.webp
+	rm tmp2.webp
+	convert -font ${font} \
+			-pointsize "16" \
+			-fill black \
+			-gravity south \
+			-annotate +0+40 "${make}" \
+			-quality 100 \
+			tmp3.webp \
+			tmp4.webp
+	rm tmp3.webp
+	convert -font ${font} \
+			-pointsize "16" \
+			-fill "#838383" \
+			-gravity south \
+			-annotate +0+16 "$lens f${fnumber} ${ss}s ISO${iso}" \
+			-quality 100 \
+			tmp4.webp \
+			${2}"/"${1}
+	rm tmp4.webp
+}
+
+files=`ls ${1}`
+for tfile in ${files}
+do
+	width=`identify -format '%w' $tfile`
+	height=`identify -format '%h' $tfile`
+	if [ $width -gt $height ]; then
+		convert "$tfile" \
+			-resize "${length}x" \
+			-mattecolor "#fff" \
+			-splice ${left}x${top} \
+			-quality 100 tmp1.webp
+		convert tmp1.webp \
+			-gravity southeast \
+			-mattecolor "#fff" \
+			-splice ${right}x${bottom} \
+			-quality 100 tmp2.webp
+		rm tmp1.webp
+	else
+		convert "$tfile" \
+			-resize "x${length}" \
+			-mattecolor "#fff" \
+			-splice ${left}x${top} \
+			-quality 100 tmp1.webp
+		convert tmp1.webp \
+			-gravity southeast \
+			-mattecolor "#fff" \
+			-splice ${right}x${bottom} \
+			-quality 100 tmp2.webp
+		rm tmp1.webp
+	fi
+	addExifData ${tfile} ${2}
+done
 
