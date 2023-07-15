@@ -5,7 +5,7 @@ if [ $# -lt 2 ]; then
 	echo "Usage :"
 	echo "    addframe <filename> <output_directory>"
 	echo "        filename : you can use wildcards."
-	echo "        output_firectory : output directory name"
+	echo "        output_directory_path : output directory path name"
 	exit 0
 fi
 
@@ -14,7 +14,7 @@ if [ ! -d ${2} ]; then
 	exit 1
 fi
 
-addExifData() { # 
+addExifData() { # {{{
 	copyright=`exiftool -s -Copyright -T $1`
 	copyright=${copyright}" \( OrzBruford \)"
 	date=`exiftool -s -DateTimeOriginal -T $1`
@@ -55,7 +55,7 @@ addExifData() { #
 			-quality 100 \
 			${2}"/"${1}
 	rm tmp2.webp
-} # 
+} # }}}
 
 rotateImage() { # {{{
 	orient=`exiftool -s -Orientation -T "${1}"`
