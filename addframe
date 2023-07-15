@@ -14,7 +14,7 @@ if [ ! -d ${2} ]; then
 	exit 1
 fi
 
-addExifData() { # {{{
+addExifData() { # 
 	copyright=`exiftool -s -Copyright -T $1`
 	copyright=${copyright}" \( OrzBruford \)"
 	date=`exiftool -s -DateTimeOriginal -T $1`
@@ -30,34 +30,32 @@ addExifData() { # {{{
 	soft=`exiftool -s -Software -T $1`
 	font=Arial
 
-	convert -font ${font} \
+	convert tmp2.webp \
 			-pointsize "24" \
+			-font ${font} \
 			-fill black \
 			-gravity south \
 			-annotate +0+64 "Shot on ${camera}" \
 			-quality 100 \
-			tmp3.webp \
-			tmp4.webp
-	rm tmp3.webp
-	convert -font ${font} \
+			- | \
+	convert - \
+			-font ${font} \
 			-pointsize "16" \
 			-fill black \
 			-gravity south \
 			-annotate +0+40 "${make}" \
 			-quality 100 \
-			tmp4.webp \
-			tmp5.webp
-	rm tmp4.webp
-	convert -font ${font} \
+			- | \
+	convert - \
+			-font ${font} \
 			-pointsize "16" \
 			-fill "#838383" \
 			-gravity south \
 			-annotate +0+16 "$lens f${fnumber} ${ss}s ISO${iso}" \
 			-quality 100 \
-			tmp5.webp \
 			${2}"/"${1}
-	rm tmp5.webp
-} # }}}
+	rm tmp2.webp
+} # 
 
 rotateImage() { # {{{
 	orient=`exiftool -s -Orientation -T "${1}"`
@@ -84,27 +82,26 @@ addframe() { # {{{
 			-resize "${length}x" \
 			-mattecolor "#fff" \
 			-splice ${left}x${top} \
-			-quality 100 tmp2.webp
-		convert tmp2.webp \
+			-quality 100 - | \
+		convert - \
 			-gravity southeast \
 			-mattecolor "#fff" \
 			-splice ${right}x${bottom} \
-			-quality 100 tmp3.webp
+			-quality 100 tmp2.webp
 		rm tmp1.webp
-		rm tmp2.webp
+		#rm tmp2.webp
 	else
 		convert tmp1.webp \
 			-resize "x${length}" \
 			-mattecolor "#fff" \
 			-splice ${left}x${top} \
-			-quality 100 tmp2.webp
-		convert tmp2.webp \
+			-quality 100 - | \
+		convert - \
 			-gravity southeast \
 			-mattecolor "#fff" \
 			-splice ${right}x${bottom} \
-			-quality 100 tmp3.webp
+			-quality 100 tmp2.webp
 		rm tmp1.webp
-		rm tmp2.webp
 	fi
 } # }}}
 
@@ -114,7 +111,7 @@ do
 	# 回転情報含有時処理 output tmp1.webp
 	rotateImage "${tfile}"
 
-	# フレーム付加 output tmp3.webp
+	# フレーム付加 output tmp2.webp
 	addframe
 
 	# Exif データ貼り付け
