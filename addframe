@@ -110,6 +110,7 @@ addframe() { # {{{
 
 for tfile in ${files}
 do
+	echo "ust a second..."
 	# 回転情報含有時処理 output tmp1.webp
 	rotateImage "${tfile}"
 
@@ -118,5 +119,7 @@ do
 
 	# Exif データ貼り付け
 	addExifData "${tfile}" "${2}"
+
+	echo "Done!!"
 done
 
