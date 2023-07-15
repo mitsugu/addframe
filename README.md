@@ -4,7 +4,7 @@
 Read the Exif of the photo image, add a frame to the image and paste the Exif content to the image.  
 
 ## Environment
-* OS : Ubuntu MATE 23.04
+* OS : Ubuntu MATE 23.04 and later
 * Shell : Bash
 
 ## Requirements
