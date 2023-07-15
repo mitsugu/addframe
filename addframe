@@ -15,9 +15,6 @@ if [ ! -d ${2} ]; then
 fi
 
 addExifData() { # {{{
-	copyright=`exiftool -s -Copyright -T $1`
-	copyright=${copyright}" \( OrzBruford \)"
-	date=`exiftool -s -DateTimeOriginal -T $1`
 	make=`exiftool -s -Make -T $1`
 	camera=`exiftool -s -Model -T $1`
 	lens=`exiftool -s -LensModel -T $1`
@@ -27,8 +24,7 @@ addExifData() { # {{{
 	iso=`exiftool -s -ISO -T $1`
 	fnumber=`exiftool -s -FNumber -T $1`
 	ss=`exiftool -s -ShutterSpeed -T $1`
-	soft=`exiftool -s -Software -T $1`
-	font=Arial
+	font=Noto-Sans-CJK-JP
 
 	convert tmp2.webp \
 			-pointsize "24" \
@@ -89,7 +85,6 @@ addframe() { # {{{
 			-splice ${right}x${bottom} \
 			-quality 100 tmp2.webp
 		rm tmp1.webp
-		#rm tmp2.webp
 	else
 		convert tmp1.webp \
 			-resize "x${length}" \
@@ -107,7 +102,7 @@ addframe() { # {{{
 
 for tfile in ${files}
 do
-	echo "ust a second..."
+	echo "Just a second..."
 	# 回転情報含有時処理 output tmp1.webp
 	rotateImage "${tfile}"
 
