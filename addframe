@@ -14,19 +14,53 @@ if [ ! -d ${2} ]; then
 	exit 1
 fi
 
-addExifData() { # {{{
-	make=`exiftool -s -Make -T $1`
-	camera=`exiftool -s -Model -T $1`
-	lens=`exiftool -s -LensModel -T $1`
-	if [ "${lens}" == "" -o "${lens}" == "-" ]; then
-		lens=`exiftool -s -LensID -T $1`
+rotateImage() { # {{{
+	length="1280"	# 画像長辺サイズ
+	top="32"		# 上辺幅
+	left="32"		# 左辺幅
+	right="32"		# 右辺幅
+	bottom="128"	# 下辺幅
+
+	ext=${2##*.}
+	if [ "${ext}" != "HEIC" ]; then
+		convert "${2}" -resize ${length}x -quality 100 webp:- | convert - -auto-orient -quality 100 tmp2.webp
+	else
+		convert "${2}" -resize x${length} -quality 100 webp:- | convert - -auto-orient -quality 100 tmp2.webp
 	fi
-	iso=`exiftool -s -ISO -T $1`
-	fnumber=`exiftool -s -FNumber -T $1`
-	ss=`exiftool -s -ShutterSpeed -T $1`
+} # }}}
+
+createFrame() { #{{{
+	#data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${tfile}" | column -d -s "\t")
+	length="1280"	# 画像長辺サイズ
+	top="32"		# 上辺幅
+	left="32"		# 左辺幅
+	right="32"		# 右辺幅
+	bottom="128"	# 下辺幅
 	font=Noto-Sans-CJK-JP
 
-	convert	tmp2.webp \
+	orient=$(echo "${1}" | cut -f 1)
+	width=$(echo "${1}" | cut -f 2)
+	height=$(echo "${1}" | cut -f 3)
+	camera=$(echo "${1}" | cut -f 4)
+	make=$(echo "${1}" | cut -f 5)
+	lens=$(echo "${1}" | cut -f 6)
+	if [ "${lens}" == "" -o "${lens}" == "-" ]; then
+		lens=$(echo "${1}" | cut -f 7)
+	fi
+	fnumber=$(echo "${1}" | cut -f 8)
+	ss=$(echo "${1}" | cut -f 9)
+	iso=$(echo "${1}" | cut -f 10)
+	tmpH=$(expr ${height} "*" 1280 "/" ${width})
+	flg=`expr "${orient}" : "^Rotate"`
+	if [ ${flg} -eq 0 ]; then
+		w=$(expr 1280 + ${left} + ${right})
+		h=$(expr ${tmpH} + ${top} + ${bottom})
+	else
+		w=$(expr ${tmpH} + ${left} + ${right})
+		h=$(expr 1280 + ${top} + ${bottom})
+	fi
+	convert -size ${w}x${h} xc:#ffffff webp:- |
+	convert - \
 			-pointsize "24" \
 			-font ${font} \
 			-fill black \
@@ -49,64 +83,22 @@ addExifData() { # {{{
 			-gravity south \
 			-annotate +0+16 "$lens f${fnumber} ${ss}s ISO${iso}" \
 			-quality 100 \
-			${2}"/"${1}
-	rm tmp2.webp
+			tmp1.webp
 } # }}}
 
-rotateImage() { # {{{
-	convert "${1}" -auto-orient -quality 100 tmp1.webp
-} # }}}
-
-addframe() { # {{{
-	length="1280"	# 画像長辺サイズ
-	top="32"		# 上辺幅
-	left="32"		# 左辺幅
-	right="32"		# 右辺幅
-	bottom="128"	# 下辺幅
-
-	tmp=`exiftool -s -T -ImageWidth -ImageHeight tmp1.webp`
-	width=`echo $tmp | cut -d " " -f 1`
-	height=`echo $tmp | cut -d " " -f 2`
-	if [ $width -gt $height ]; then
-		convert tmp1.webp \
-			-resize "${length}x" \
-			-mattecolor "#fff" \
-			-splice ${left}x${top} \
-			-quality 100 - | \
-		convert - \
-			-gravity southeast \
-			-mattecolor "#fff" \
-			-splice ${right}x${bottom} \
-			-quality 100 tmp2.webp
-		rm tmp1.webp
-	else
-		convert tmp1.webp \
-			-resize "x${length}" \
-			-mattecolor "#fff" \
-			-splice ${left}x${top} \
-			-quality 100 - | \
-		convert - \
-			-gravity southeast \
-			-mattecolor "#fff" \
-			-splice ${right}x${bottom} \
-			-quality 100 tmp2.webp
-		rm tmp1.webp
-	fi
+mergeImage() { # {{{
+	convert tmp1.webp tmp2.webp -gravity north -geometry +0+32 -compose over -composite ${1}"/"${2}
+	rm tmp1.webp tmp2.webp
 } # }}}
 
 for tfile in ${files}
 do
 	echo "Just a second..."
 
-	# 回転情報含有時処理 output tmp1.webp
-	rotateImage "${tfile}"
-
-	# フレーム付加 output tmp2.webp
-	addframe
-
-	# Exif データ貼り付け
-	addExifData "${tfile}" "${2}"
-
+	data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${tfile}" | column -d -s "\t")
+	createFrame "${data}"
+	rotateImage "${data}" "${tfile}"
+	mergeImage ${2} ${tfile}
 	echo "Done!!"
 done
 
