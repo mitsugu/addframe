@@ -15,14 +15,17 @@ if [ ! -d ${2} ]; then
 fi
 
 rotateImage() { # {{{
+	#data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${tfile}" | column -d -s "\t")
 	length="1280"	# 画像長辺サイズ
 	top="32"		# 上辺幅
 	left="32"		# 左辺幅
 	right="32"		# 右辺幅
 	bottom="128"	# 下辺幅
 
+	orient=$(echo "${1}" | cut -f 1)
+	flg=`expr "${orient}" : "^Rotate"`
 	ext=${2##*.}
-	if [ "${ext}" != "HEIC" ]; then
+	if  [ "${ext}" != "HEIC" ] || [ ${flg} -eq 0 ] ; then
 		convert "${2}" -resize ${length}x -quality 100 webp:- | convert - -auto-orient -quality 100 tmp2.webp
 	else
 		convert "${2}" -resize x${length} -quality 100 webp:- | convert - -auto-orient -quality 100 tmp2.webp
