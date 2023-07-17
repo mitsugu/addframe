@@ -18,3 +18,6 @@ Make the script addframe executable and place it in a directory in your path.
 ``` bash
 $ addframe source_file destnation_file
 ```
+## Sample
+![sample](https://i.imgur.com/znzfFLs.jpg "sample")
+
