@@ -143,5 +143,4 @@ fname=`basename "${1}"`
 mergeImage  "${fname}" ${2}
 
 echo "Done!!"
->>>>>>> debug
 
