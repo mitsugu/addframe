@@ -25,7 +25,7 @@ rotateImage() { # {{{
 	orient=$(echo "${1}" | cut -f 1)
 	flg=`expr "${orient}" : "Rotate"`
 	ext=${2##*.}
-	if  [ "${ext}" != "HEIC" ] || [ ${flg} -eq 0 ] ; then
+	if  [ "${ext}" != "HEIC" ] || [ ${flg} -ne 0 ] ; then
 		convert "${2}" -resize ${length}x -quality 100 webp:- | convert - -auto-orient -quality 100 /tmp/work/tmp2.webp
 	else
 		convert "${2}" -resize x${length} -quality 100 webp:- | convert - -auto-orient -quality 100 /tmp/work/tmp2.webp
