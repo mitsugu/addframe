@@ -1,5 +1,6 @@
 #! /bin/bash
-files=`ls "${1}"`
+inpath=`ls "${1}"`
+outpath=`ls "${2}"`
 
 if [ $# -lt 2 ]; then
 	echo "Usage :"
@@ -22,13 +23,31 @@ rotateImage() { # {{{
 	right="32"		# 右辺幅
 	bottom="128"	# 下辺幅
 
+	width=$(echo "${1}" | cut -f 2)
+	height=$(echo "${1}" | cut -f 3)
 	orient=$(echo "${1}" | cut -f 1)
-	flg=`expr "${orient}" : "^Rotate"`
+	flg=`expr "${orient}" : "Rotate"`
 	ext=${2##*.}
-	if  [ "${ext}" != "HEIC" ] || [ ${flg} -eq 0 ] ; then
-		convert "${2}" -resize ${length}x -quality 100 webp:- | convert - -auto-orient -quality 100 tmp2.webp
+	if  [ "${ext}" != "HEIC" ]; then
+		if [ ${flg} -eq 0 ] ; then
+			if [ ${width} -gt ${height} ];then
+				convert "${2}" -resize ${length}x -quality 100 /tmp/work/tmp2.webp
+			else
+				convert "${2}" -resize x${length} -quality 100  /tmp/work/tmp2.webp
+			fi
+		else
+			if [ ${width} -gt ${height} ];then
+				convert "${2}" -auto-orient -quality 100 webp:- | convert - -resize x${length} -quality 100 /tmp/work/tmp2.webp
+			else
+				convert "${2}" -auto-orient -quality 100 webp:- | convert - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
+			fi
+		fi
 	else
-		convert "${2}" -resize x${length} -quality 100 webp:- | convert - -auto-orient -quality 100 tmp2.webp
+		if [ ${flg} -eq 0 ] ; then
+			convert "${2}" -auto-orient -quality 100 webp:- | convert - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
+		else
+			convert "${2}" -auto-orient -quality 100 webp:- | convert - -resize x${length} -quality 100 /tmp/work/tmp2.webp
+		fi
 	fi
 } # }}}
 
@@ -54,10 +73,16 @@ createFrame() { #{{{
 	ss=$(echo "${1}" | cut -f 9)
 	iso=$(echo "${1}" | cut -f 10)
 	tmpH=$(expr ${height} "*" 1280 "/" ${width})
-	flg=`expr "${orient}" : "^Rotate"`
+	tmpW=$(expr ${width} "*" 1280 "/" ${height})
+	flg=`expr "${orient}" : "Rotate"`
 	if [ ${flg} -eq 0 ]; then
-		w=$(expr 1280 + ${left} + ${right})
-		h=$(expr ${tmpH} + ${top} + ${bottom})
+		if [ ${width} -gt ${height} ];then
+			w=$(expr 1280 + ${left} + ${right})
+			h=$(expr ${tmpH} + ${top} + ${bottom})
+		else
+			w=$(expr ${tmpW} + ${left} + ${right})
+			h=$(expr 1280 + ${top} + ${bottom})
+		fi
 	else
 		w=$(expr ${tmpH} + ${left} + ${right})
 		h=$(expr 1280 + ${top} + ${bottom})
@@ -86,22 +111,26 @@ createFrame() { #{{{
 			-gravity south \
 			-annotate +0+16 "$lens f${fnumber} ${ss}s ISO${iso}" \
 			-quality 100 \
-			tmp1.webp
+			/tmp/work/tmp1.webp
 } # }}}
 
 mergeImage() { # {{{
-	convert tmp1.webp tmp2.webp -gravity north -geometry +0+32 -compose over -composite ${1}"/"${2}
-	rm tmp1.webp tmp2.webp
+	convert /tmp/work/tmp1.webp /tmp/work/tmp2.webp -gravity north -geometry +0+32 -compose over -composite "${2}""/""${1}"
+	rm /tmp/work/tmp1.webp /tmp/work/tmp2.webp
 } # }}}
 
-for tfile in ${files}
-do
-	echo "Just a second..."
+echo "Just a second..."
 
-	data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${tfile}" | column -d -s "\t")
-	createFrame "${data}"
-	rotateImage "${data}" "${tfile}"
-	mergeImage ${2} ${tfile}
-	echo "Done!!"
-done
+data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${1}" | column -d -s "\t")
+echo "createFrame"
+createFrame "${data}"
+
+echo "rotateImage"
+rotateImage "${data}" "${1}"
+
+echo "mergeImage"
+fname=`basename "${1}"`
+mergeImage  "${fname}" ${2}
+
+echo "Done!!"
 
