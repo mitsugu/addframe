@@ -23,12 +23,12 @@ rotateImage() { # {{{
 	bottom="128"	# 下辺幅
 
 	orient=$(echo "${1}" | cut -f 1)
-	flg=`expr "${orient}" : "^Rotate"`
+	flg=`expr "${orient}" : "Rotate"`
 	ext=${2##*.}
 	if  [ "${ext}" != "HEIC" ] || [ ${flg} -eq 0 ] ; then
-		convert "${2}" -resize ${length}x -quality 100 webp:- | convert - -auto-orient -quality 100 tmp2.webp
+		convert "${2}" -resize ${length}x -quality 100 webp:- | convert - -auto-orient -quality 100 /tmp/work/tmp2.webp
 	else
-		convert "${2}" -resize x${length} -quality 100 webp:- | convert - -auto-orient -quality 100 tmp2.webp
+		convert "${2}" -resize x${length} -quality 100 webp:- | convert - -auto-orient -quality 100 /tmp/work/tmp2.webp
 	fi
 } # }}}
 
@@ -54,7 +54,7 @@ createFrame() { #{{{
 	ss=$(echo "${1}" | cut -f 9)
 	iso=$(echo "${1}" | cut -f 10)
 	tmpH=$(expr ${height} "*" 1280 "/" ${width})
-	flg=`expr "${orient}" : "^Rotate"`
+	flg=`expr "${orient}" : "Rotate"`
 	if [ ${flg} -eq 0 ]; then
 		w=$(expr 1280 + ${left} + ${right})
 		h=$(expr ${tmpH} + ${top} + ${bottom})
@@ -86,12 +86,12 @@ createFrame() { #{{{
 			-gravity south \
 			-annotate +0+16 "$lens f${fnumber} ${ss}s ISO${iso}" \
 			-quality 100 \
-			tmp1.webp
+			/tmp/work/tmp1.webp
 } # }}}
 
 mergeImage() { # {{{
-	convert tmp1.webp tmp2.webp -gravity north -geometry +0+32 -compose over -composite ${1}"/"${2}
-	rm tmp1.webp tmp2.webp
+	convert /tmp/work/tmp1.webp /tmp/work/tmp2.webp -gravity north -geometry +0+32 -compose over -composite "${2}""/""${1}"
+	rm /tmp/work/tmp1.webp /tmp/work/tmp2.webp
 } # }}}
 
 for tfile in ${files}
@@ -99,9 +99,16 @@ do
 	echo "Just a second..."
 
 	data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${tfile}" | column -d -s "\t")
+	echo "createFrame"
 	createFrame "${data}"
+
+	echo "rotateImage"
 	rotateImage "${data}" "${tfile}"
-	mergeImage ${2} ${tfile}
+
+	echo "mergeImage"
+	fname=`basename "${tfile}"`
+	mergeImage  "${fname}" ${2}
+
 	echo "Done!!"
 done
 
