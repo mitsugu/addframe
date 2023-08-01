@@ -28,12 +28,6 @@ rotateImage() { # {{{
 	orient=$(echo "${1}" | cut -f 1)
 	flg=`expr "${orient}" : "Rotate"`
 	ext=${2##*.}
-<<<<<<< HEAD
-	if  [ "${ext}" != "HEIC" ] || [ ${flg} -ne 0 ] ; then
-		convert "${2}" -resize ${length}x -quality 100 webp:- | convert - -auto-orient -quality 100 /tmp/work/tmp2.webp
-	else
-		convert "${2}" -resize x${length} -quality 100 webp:- | convert - -auto-orient -quality 100 /tmp/work/tmp2.webp
-=======
 	if  [ "${ext}" != "HEIC" ]; then
 		if [ ${flg} -eq 0 ] ; then
 			if [ ${width} -gt ${height} ];then
@@ -54,7 +48,6 @@ rotateImage() { # {{{
 		else
 			convert "${2}" -auto-orient -quality 100 webp:- | convert - -resize x${length} -quality 100 /tmp/work/tmp2.webp
 		fi
->>>>>>> debug
 	fi
 } # }}}
 
@@ -80,10 +73,7 @@ createFrame() { #{{{
 	ss=$(echo "${1}" | cut -f 9)
 	iso=$(echo "${1}" | cut -f 10)
 	tmpH=$(expr ${height} "*" 1280 "/" ${width})
-<<<<<<< HEAD
-=======
 	tmpW=$(expr ${width} "*" 1280 "/" ${height})
->>>>>>> debug
 	flg=`expr "${orient}" : "Rotate"`
 	if [ ${flg} -eq 0 ]; then
 		if [ ${width} -gt ${height} ];then
