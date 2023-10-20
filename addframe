@@ -121,6 +121,10 @@ mergeImage() { # {{{
 
 echo "Just a second..."
 
+if [ ! -d "/tmp/work" ] ; then
+	mkdir -p /tmp/work
+fi
+
 data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${1}" | column -d -s "\t")
 echo "createFrame"
 createFrame "${data}"
