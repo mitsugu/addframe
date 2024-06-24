@@ -16,7 +16,7 @@ if [ ! -d ${2} ]; then
 fi
 
 rotateImage() { # {{{
-	#data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${tfile}" | column -d -s "\t")
+	#data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO -CopyRight "${tfile}" | column -d -s "\t")
 	length="1280"	# 画像長辺サイズ
 	top="32"		# 上辺幅
 	left="32"		# 左辺幅
@@ -31,28 +31,28 @@ rotateImage() { # {{{
 	if  [ "${ext}" != "HEIC" ]; then
 		if [ ${flg} -eq 0 ] ; then
 			if [ ${width} -gt ${height} ];then
-				magick convert "${2}" -resize ${length}x -quality 100 /tmp/work/tmp2.webp
+				magick "${2}" -resize ${length}x -quality 100 /tmp/work/tmp2.webp
 			else
-				magick convert "${2}" -resize x${length} -quality 100  /tmp/work/tmp2.webp
+				magick "${2}" -resize x${length} -quality 100  /tmp/work/tmp2.webp
 			fi
 		else
 			if [ ${width} -gt ${height} ];then
-				magick convert "${2}" -auto-orient -quality 100 webp:- | magick convert - -resize x${length} -quality 100 /tmp/work/tmp2.webp
+				magick "${2}" -auto-orient -quality 100 webp:- | magick - -resize x${length} -quality 100 /tmp/work/tmp2.webp
 			else
-				magick convert "${2}" -auto-orient -quality 100 webp:- | magick convert - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
+				magick "${2}" -auto-orient -quality 100 webp:- | magick - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
 			fi
 		fi
 	else
 		if [ ${flg} -eq 0 ] ; then
-			magick convert "${2}" -auto-orient -quality 100 webp:- | magick convert - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
+			magick "${2}" -auto-orient -quality 100 webp:- | magick - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
 		else
-			magick convert "${2}" -auto-orient -quality 100 webp:- | magick convert - -resize x${length} -quality 100 /tmp/work/tmp2.webp
+			magick "${2}" -auto-orient -quality 100 webp:- | magick - -resize x${length} -quality 100 /tmp/work/tmp2.webp
 		fi
 	fi
 } # }}}
 
 createFrame() { #{{{
-	#data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${tfile}" | column -d -s "\t")
+	#data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO -CopyRight "${tfile}" | column -d -s "\t")
 	length="1280"	# 画像長辺サイズ
 	top="32"		# 上辺幅
 	left="32"		# 左辺幅
@@ -72,6 +72,7 @@ createFrame() { #{{{
 	fnumber=$(echo "${1}" | cut -f 8)
 	ss=$(echo "${1}" | cut -f 9)
 	iso=$(echo "${1}" | cut -f 10)
+	copyright=$(echo "${1}" | cut -f 11)
 	tmpH=$(expr ${height} "*" 1280 "/" ${width})
 	tmpW=$(expr ${width} "*" 1280 "/" ${height})
 	flg=`expr "${orient}" : "Rotate"`
@@ -87,24 +88,32 @@ createFrame() { #{{{
 		w=$(expr ${tmpH} + ${left} + ${right})
 		h=$(expr 1280 + ${top} + ${bottom})
 	fi
-	magick convert -size ${w}x${h} xc:#ffffff webp:- |
-	magick convert - \
+	magick -size ${w}x${h} xc:#3f3f3f webp:- |
+	magick - \
 			-pointsize "24" \
 			-font ${font} \
-			-fill black \
+			-fill white \
+			-gravity south \
+			-annotate +0+88 "${copyright}" \
+			-quality 100 \
+			- | \
+	magick - \
+			-pointsize "24" \
+			-font ${font} \
+			-fill white \
 			-gravity south \
 			-annotate +0+64 "Shot on ${camera}" \
 			-quality 100 \
 			- | \
-	magick convert - \
+	magick - \
 			-font ${font} \
 			-pointsize "16" \
-			-fill black \
+			-fill white \
 			-gravity south \
 			-annotate +0+40 "${make}" \
 			-quality 100 \
 			- | \
-	magick convert - \
+	magick - \
 			-font ${font} \
 			-pointsize "16" \
 			-fill "#838383" \
@@ -115,7 +124,7 @@ createFrame() { #{{{
 } # }}}
 
 mergeImage() { # {{{
-	magick convert /tmp/work/tmp1.webp /tmp/work/tmp2.webp -gravity north -geometry +0+32 -compose over -composite "${2}""/""${1}"
+	magick /tmp/work/tmp1.webp /tmp/work/tmp2.webp -gravity north -geometry +0+32 -compose over -composite "${2}""/""${1}"
 	rm /tmp/work/tmp1.webp /tmp/work/tmp2.webp
 } # }}}
 
@@ -125,7 +134,7 @@ if [ ! -d "/tmp/work" ] ; then
 	mkdir -p /tmp/work
 fi
 
-data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO "${1}" | column -d -s "\t")
+data=$(exiftool -s -T -Orientation -ImageWidth -ImageHeight -Model -Make  -LensModel -LensID -FNumber -ShutterSpeed -ISO -CopyRight "${1}" | column -d -s "\t")
 echo "createFrame"
 createFrame "${data}"
 
