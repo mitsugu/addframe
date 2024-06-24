@@ -31,22 +31,22 @@ rotateImage() { # {{{
 	if  [ "${ext}" != "HEIC" ]; then
 		if [ ${flg} -eq 0 ] ; then
 			if [ ${width} -gt ${height} ];then
-				convert "${2}" -resize ${length}x -quality 100 /tmp/work/tmp2.webp
+				magick convert "${2}" -resize ${length}x -quality 100 /tmp/work/tmp2.webp
 			else
-				convert "${2}" -resize x${length} -quality 100  /tmp/work/tmp2.webp
+				magick convert "${2}" -resize x${length} -quality 100  /tmp/work/tmp2.webp
 			fi
 		else
 			if [ ${width} -gt ${height} ];then
-				convert "${2}" -auto-orient -quality 100 webp:- | convert - -resize x${length} -quality 100 /tmp/work/tmp2.webp
+				magick convert "${2}" -auto-orient -quality 100 webp:- | magick convert - -resize x${length} -quality 100 /tmp/work/tmp2.webp
 			else
-				convert "${2}" -auto-orient -quality 100 webp:- | convert - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
+				magick convert "${2}" -auto-orient -quality 100 webp:- | magick convert - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
 			fi
 		fi
 	else
 		if [ ${flg} -eq 0 ] ; then
-			convert "${2}" -auto-orient -quality 100 webp:- | convert - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
+			magick convert "${2}" -auto-orient -quality 100 webp:- | magick convert - -resize ${length}x -quality 100 /tmp/work/tmp2.webp
 		else
-			convert "${2}" -auto-orient -quality 100 webp:- | convert - -resize x${length} -quality 100 /tmp/work/tmp2.webp
+			magick convert "${2}" -auto-orient -quality 100 webp:- | magick convert - -resize x${length} -quality 100 /tmp/work/tmp2.webp
 		fi
 	fi
 } # }}}
@@ -87,8 +87,8 @@ createFrame() { #{{{
 		w=$(expr ${tmpH} + ${left} + ${right})
 		h=$(expr 1280 + ${top} + ${bottom})
 	fi
-	convert -size ${w}x${h} xc:#ffffff webp:- |
-	convert - \
+	magick convert -size ${w}x${h} xc:#ffffff webp:- |
+	magick convert - \
 			-pointsize "24" \
 			-font ${font} \
 			-fill black \
@@ -96,7 +96,7 @@ createFrame() { #{{{
 			-annotate +0+64 "Shot on ${camera}" \
 			-quality 100 \
 			- | \
-	convert - \
+	magick convert - \
 			-font ${font} \
 			-pointsize "16" \
 			-fill black \
@@ -104,7 +104,7 @@ createFrame() { #{{{
 			-annotate +0+40 "${make}" \
 			-quality 100 \
 			- | \
-	convert - \
+	magick convert - \
 			-font ${font} \
 			-pointsize "16" \
 			-fill "#838383" \
@@ -115,7 +115,7 @@ createFrame() { #{{{
 } # }}}
 
 mergeImage() { # {{{
-	convert /tmp/work/tmp1.webp /tmp/work/tmp2.webp -gravity north -geometry +0+32 -compose over -composite "${2}""/""${1}"
+	magick convert /tmp/work/tmp1.webp /tmp/work/tmp2.webp -gravity north -geometry +0+32 -compose over -composite "${2}""/""${1}"
 	rm /tmp/work/tmp1.webp /tmp/work/tmp2.webp
 } # }}}
 
