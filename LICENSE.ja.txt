@@ -169,7 +169,7 @@ http://www.apache.org/licenses/
     びに趣旨説明が著作権表示と同じ「印刷ページ」に現れるようにすることを
     お勧めします。
 
-Copyright [yyyy] [著作権所有者の名前]
+Copyright 2024 MITSUGU OYAMA (online nick nake OrzBruford)
 
 Apache License Version 2.0（「本ライセンス」）に基づいてライセンスされま
 す。あなたがこのファイルを使用するためには、本ライセンスに従わなければな
