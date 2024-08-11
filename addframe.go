@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	//"log"
 	"os"
 	"os/exec"
 	"io"
@@ -68,7 +67,6 @@ type ExifData struct {
 	Height      int
 }
 func (e *ExifData) load(inputPath string) error {
-	// Exifデータを取得
 	cmd := exec.Command(config.Exiftool,
 		"-Lens", "-FNumber", "-ShutterSpeed", "-ISO", "-Orientation",
 		"-Author", "-Copyright", "-Make", "-Model", "-LensID", "-LensModel",
@@ -102,49 +100,10 @@ func (e *ExifData) load(inputPath string) error {
 }
 var exifdata ExifData
 
-/*
-func getImageDimensions(inputPath string) (int, int, error) {
-	cmd := exec.Command(config.Exiftool, "-ImageWidth", "-ImageHeight", "-s", "-T", inputPath)
-	output, err := cmd.Output()
-	if err != nil {
-		return 0, 0, fmt.Errorf("failed to get image dimensions: %w", err)
-	}
-
-	outputStr := strings.TrimSpace(string(output))
-
-	lines := strings.Split(outputStr, "\n")
-	if len(lines) < 1 {
-		return 0, 0, fmt.Errorf("unexpected output from exiftool: %s", outputStr)
-	}
-
-	dimensions := strings.Fields(lines[0])
-	if len(dimensions) < 2 {
-		return 0, 0, fmt.Errorf("unexpected output format: %s", outputStr)
-	}
-
-	widthStr := strings.TrimSpace(dimensions[0])
-	heightStr := strings.TrimSpace(dimensions[1])
-
-	width, err := strconv.Atoi(widthStr)
-	if err != nil {
-		return 0, 0, fmt.Errorf("invalid width: %w", err)
-	}
-
-	height, err := strconv.Atoi(heightStr)
-	if err != nil {
-		return 0, 0, fmt.Errorf("invalid height: %w", err)
-	}
-
-	return width, height, nil
-}
-*/
-
 func getOrientation(data string) (string, error) {
 	orientationStr := strings.TrimSpace(data)
-	// デフォルトの回転なし
 	rotationAngle := "0"
 
-	// 回転情報が存在する場合
 	if orientationStr != "" && orientationStr != "-" {
 		switch {
 		case strings.Contains(orientationStr, "Rotate 90 CW"):
@@ -164,17 +123,6 @@ func getOrientation(data string) (string, error) {
 
 	return rotationAngle, nil
 }
-
-/*
-func getcameramodel(inputPath string) (string, error) {
-	cmd := exec.Command(config.Exiftool, "-Model", "-s", "-T", inputPath)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get camera model: %w", err)
-	}
-	return strings.TrimSpace(string(output)), nil
-}
-*/
 
 func createFrame(inputPath string, outputPath string) error {
 	width := config.Length
@@ -202,9 +150,9 @@ func createFrame(inputPath string, outputPath string) error {
 		lens = exifdata.LensModel
 	}
 	cmdArgs = append(cmdArgs, "-pointsize", "24", "-font", config.Font, "-fill", config.FontColor, "-gravity", "south")
-	cmdArgs = append(cmdArgs, "-annotate", "+0+64", exifdata.Copyright)
-	cmdArgs = append(cmdArgs, "-pointsize", "24", "-font", config.Font, "-fill", config.FontColor, "-gravity", "south", "-annotate", "+0+40", fmt.Sprintf("%s / %s", exifdata.Model, exifdata.Make))
-	cmdArgs = append(cmdArgs, "-pointsize", "16", "-font", config.Font, "-fill", config.FontColor, "-gravity", "south", "-annotate", "+0+16", fmt.Sprintf("%s f%s %ss ISO%s", lens, exifdata.Fnumber, exifdata.Shutterspeed, exifdata.ISO))
+	cmdArgs = append(cmdArgs, "-annotate", "+0+72", exifdata.Copyright)
+	cmdArgs = append(cmdArgs, "-pointsize", "24", "-font", config.Font, "-fill", config.FontColor, "-gravity", "south", "-annotate", "+0+48", fmt.Sprintf("%s / %s", exifdata.Model, exifdata.Make))
+	cmdArgs = append(cmdArgs, "-pointsize", "16", "-font", config.Font, "-fill", config.FontColor, "-gravity", "south", "-annotate", "+0+24", fmt.Sprintf("%s f%s %ss ISO%s", lens, exifdata.Fnumber, exifdata.Shutterspeed, exifdata.ISO))
 
 	/*
 	if rotationAngle > 0 {
@@ -234,21 +182,12 @@ func rotateImage(inputPath string) error {
 	height := (exifdata.Height * config.Length)/exifdata.Width
 	rotationAngle := exifdata.Orientation
 
-	/*
-	switch rotationAngle {
-	case 90, 270:
-		width, height = height, width
-	}
-	*/
-
-
 	cmd := exec.Command(config.Imagemagick, inputPath, "-resize", fmt.Sprintf("%dx%d", width, height), "-rotate", fmt.Sprintf("+%d",rotationAngle), "-orient", "undefined", "-quality", "100", "tmp2.webp")
 	return cmd.Run()
 }
 
 func mergeImage(inputPath, outputPath string) error {
 	if outputPath == "" {
-		// 出力ファイルが指定されていない場合は、入力ファイルをコピー
 		outputPath = filepath.Join(".", filepath.Base(inputPath))
 		err := copyFile(inputPath, outputPath)
 		if err != nil {
@@ -268,7 +207,6 @@ func mergeImage(inputPath, outputPath string) error {
 	return nil
 }
 
-// ファイルをコピーするヘルパー関数
 func copyFile(src, dst string) error {
 	sourceFile, err := os.Open(src)
 	if err != nil {

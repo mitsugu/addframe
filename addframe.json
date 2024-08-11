@@ -4,9 +4,9 @@
 	"left": 32,
 	"right": 32,
 	"bottom": 128,
-	"font": "/home/mitsugu/.font/BizinGothic-Regular.ttf",
+	"font": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
 	"fontColor": "white",
 	"frameColor": "#3f3f3f",
-	"imagemagick": "/home/mitsugu/.local/bin/magick",
+	"imagemagick": "/bin/magick",
 	"exiftool": "/bin/exiftool"
 }
