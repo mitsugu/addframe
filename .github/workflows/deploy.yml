@@ -1,0 +1,61 @@
+name: Build and Deploy Go Program
+
+on:
+  push:
+    tags:
+      - '*'  # すべてのタグがプッシュされたときに実行
+
+jobs:
+  build:
+    name: Build and Deploy
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]  # macOS を対象外に
+        go-version: [1.22.*]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Build binary
+      run: |
+        go build -o output/${{ matrix.os }}/myapp
+
+    - name: Archive binary
+      uses: actions/upload-artifact@v3
+      with:
+        name: myapp-${{ matrix.os }}
+        path: output/${{ matrix.os }}/myapp
+
+  deploy:
+    name: Deploy binaries
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download binaries
+      uses: actions/download-artifact@v3
+      with:
+        name: myapp-ubuntu-latest
+
+    - name: Deploy to GitHub Releases
+      uses: softprops/action-gh-release@v1
+      with:
+        files: output/ubuntu-latest/myapp
+
+    - name: Download binaries (Windows)
+      uses: actions/download-artifact@v3
+      with:
+        name: myapp-windows-latest
+
+    - name: Deploy to GitHub Releases (Windows)
+      uses: softprops/action-gh-release@v1
+      with:
+        files: output/windows-latest/myapp.exe
