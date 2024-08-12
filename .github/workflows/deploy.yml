@@ -67,18 +67,29 @@ jobs:
           mkdir -p artifacts/zipped
           cd artifacts
 
+          # List files to confirm existence
+          echo "Listing files in ubuntu-latest/"
+          ls -la ubuntu-latest
+
+          echo "Listing files in macos-latest/"
+          ls -la macos-latest
+
+          echo "Listing files in windows-latest/"
+          ls -la windows-latest
+
           # Create ZIP files
           if [ -f ubuntu-latest/addframe-linux ] && [ -f ubuntu-latest/addframe.json ]; then
-            zip -r zipped/addframe-linux.zip ubuntu-latest/addframe-linux ubuntu-latest/addframe.json
+            zip zipped/addframe-linux.zip ubuntu-latest/addframe-linux ubuntu-latest/addframe.json
           fi
 
           if [ -f macos-latest/addframe-macos ] && [ -f macos-latest/addframe.json ]; then
-            zip -r zipped/addframe-macos.zip macos-latest/addframe-macos macos-latest/addframe.json
+            zip zipped/addframe-macos.zip macos-latest/addframe-macos macos-latest/addframe.json
           fi
 
           if [ -f windows-latest/addframe.exe ] && [ -f windows-latest/addframe.json ]; then
-            zip -r zipped/addframe-windows.zip windows-latest/addframe.exe windows-latest/addframe.json
+            zip zipped/addframe-windows.zip windows-latest/addframe.exe windows-latest/addframe.json
           fi
+        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
         shell: bash
 
       - name: Upload ZIP files
