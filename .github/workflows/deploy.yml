@@ -87,11 +87,22 @@ jobs:
           pwd
           echo "Listing files in artifacts/"
           ls -la ./artifacts
+          ls -la ./artifacts/
         shell: bash
 
       - name: Create ZIP files
         run: |
           mkdir -p artifacts/zipped-artifacts
+
+          # List files to confirm their existence before creating ZIP files
+          echo "Listing files in build-ubuntu-latest/"
+          ls -la artifacts/ubuntu-latest
+
+          echo "Listing files in build-macos-latest/"
+          ls -la artifacts/macos-latest
+
+          echo "Listing files in build-windows-latest/"
+          ls -la artifacts/windows-latest
 
           # Create ZIP files
           if [ -f artifacts/ubuntu-latest/addframe-linux ] && [ -f artifacts/ubuntu-latest/addframe.json ]; then
@@ -109,6 +120,7 @@ jobs:
 
       - name: List ZIP files
         run: |
+          echo "Listing ZIP files in artifacts/zipped-artifacts/"
           ls -la artifacts/zipped-artifacts/
         shell: bash
 
