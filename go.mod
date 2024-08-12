@@ -1,4 +1,4 @@
-module github.com/mitsugu/go-addframe
+module github.com/mitsugu/addframe
 
 go 1.22.5
 
