@@ -25,9 +25,7 @@ jobs:
         run: |
           mkdir -p artifacts/${{ matrix.os }}
           if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
-            # Linux用のビルド
             GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe-linux
-            # Windows用のビルド
             GOOS=windows GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe.exe
           elif [ ${{ matrix.os }} = 'macos-latest' ]; then
             GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe_amd64
@@ -46,16 +44,22 @@ jobs:
         shell: bash
 
       - name: Create ZIP file
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         run: |
           cd artifacts/${{ matrix.os }}
           if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
             zip addframe-linux.zip addframe-linux addframe.json
           elif [ ${{ matrix.os }} = 'macos-latest' ]; then
             zip addframe-macos.zip addframe-macos addframe.json
-          elif [ ${{ matrix.os }} = 'windows-latest' ]; then
-            powershell -Command "Compress-Archive -Path 'addframe.exe', 'addframe.json' -DestinationPath 'addframe-windows.zip'"
           fi
         shell: bash
+
+      - name: Create ZIP file for Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd artifacts/windows-latest
+          powershell -Command "Compress-Archive -Path 'addframe.exe', 'addframe.json' -DestinationPath 'addframe-windows.zip'"
+        shell: pwsh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
