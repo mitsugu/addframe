@@ -1,61 +1,39 @@
-name: Build and Deploy Go Program
-
+name: Deploy
 on:
   push:
     tags:
-      - '*'  # すべてのタグがプッシュされたときに実行
-
+      - 'v*.*.*'
 jobs:
   build:
-    name: Build and Deploy
-    runs-on: ${{ matrix.os }}
-
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]  # macOS を対象外に
-        go-version: [1.22.*]
-
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ matrix.go-version }}
-
-    - name: Build binary
-      run: |
-        go build -o output/${{ matrix.os }}/addframe
-
-    - name: Archive binary
-      uses: actions/upload-artifact@v4
-      with:
-        name: addframe-${{ matrix.os }}
-        path: output/${{ matrix.os }}/addframe
-
-  deploy:
-    name: Deploy binaries
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.5'
+      - name: Build for ${{ matrix.os }}
+        run: go build -o addframe-${{ matrix.os }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: addframe-${{ matrix.os }}
+          path: addframe-${{ matrix.os }}
+  release:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
-    - name: Download binaries
-      uses: actions/download-artifact@v3
-      with:
-        name: addframe-ubuntu-latest
-
-    - name: Deploy to GitHub Releases
-      uses: softprops/action-gh-release@v1
-      with:
-        files: output/ubuntu-latest/addframe
-
-    - name: Download binaries (Windows)
-      uses: actions/download-artifact@v3
-      with:
-        name: addframe-windows-latest
-
-    - name: Deploy to GitHub Releases (Windows)
-      uses: softprops/action-gh-release@v1
-      with:
-        files: output/windows-latest/addframe.exe
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: ./artifacts
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifacts/addframe-*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
