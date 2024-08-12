@@ -55,16 +55,30 @@ jobs:
           path: ./artifacts
 
       - name: List build artifacts
-        run: ls -la ./artifacts
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Listing files in artifacts/"
+          ls -la ./artifacts
         shell: bash
 
-      - name: Create ZIP file
+      - name: Create ZIP files
         run: |
           mkdir -p artifacts/zipped
           cd artifacts
-          zip -r zipped/addframe-linux.zip ubuntu-latest/addframe-linux ubuntu-latest/addframe.json
-          zip -r zipped/addframe-macos.zip macos-latest/addframe-macos macos-latest/addframe.json
-          zip -r zipped/addframe-windows.zip ubuntu-latest/addframe.exe ubuntu-latest/addframe.json
+
+          # Create ZIP files
+          if [ -f ubuntu-latest/addframe-linux ] && [ -f ubuntu-latest/addframe.json ]; then
+            zip -r zipped/addframe-linux.zip ubuntu-latest/addframe-linux ubuntu-latest/addframe.json
+          fi
+
+          if [ -f macos-latest/addframe-macos ] && [ -f macos-latest/addframe.json ]; then
+            zip -r zipped/addframe-macos.zip macos-latest/addframe-macos macos-latest/addframe.json
+          fi
+
+          if [ -f windows-latest/addframe.exe ] && [ -f windows-latest/addframe.json ]; then
+            zip -r zipped/addframe-windows.zip windows-latest/addframe.exe windows-latest/addframe.json
+          fi
         shell: bash
 
       - name: Upload ZIP files
