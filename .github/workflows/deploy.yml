@@ -89,7 +89,6 @@ jobs:
           if [ -f windows-latest/addframe.exe ] && [ -f windows-latest/addframe.json ]; then
             zip -r zipped/addframe-windows.zip windows-latest/addframe.exe windows-latest/addframe.json
           fi
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
         shell: bash
 
       - name: Upload ZIP files
@@ -122,4 +121,3 @@ jobs:
             ./artifacts/zipped/addframe-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
