@@ -35,6 +35,9 @@ jobs:
               ;;
           esac
 
+      - name: List build artifacts
+        run: ls -la
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -50,6 +53,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
+
+      - name: List downloaded artifacts
+        run: ls -la ./artifacts/
 
       - name: Release
         uses: softprops/action-gh-release@v1
