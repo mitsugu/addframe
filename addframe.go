@@ -96,6 +96,11 @@ func (e *ExifData) load(inputPath string) error {
 	e.Width, _ = strconv.Atoi(strings.TrimSpace(lines[11]))
 	e.Height, _ = strconv.Atoi(strings.TrimSpace(lines[12]))
 
+	if strings.Contains(e.Model, "iPhone") && (e.Orientation == 90 || e.Orientation == 270) {
+		e.Width, e.Height = e.Height, e.Width
+		e.Orientation = 0
+	}
+
 	return nil
 }
 var exifdata ExifData
