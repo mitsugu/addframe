@@ -72,6 +72,7 @@ jobs:
           name: build-windows-latest
           path: artifacts/windows-latest
 
+
   zip:
     needs: [build-ubuntu-macos, build-windows]
     runs-on: ubuntu-latest
@@ -87,8 +88,12 @@ jobs:
           pwd
           echo "Listing files in artifacts/"
           ls -la ./artifacts
-          echo "Listing files in artifacts/zipped-artifacts/"
-          ls -la ./artifacts/zipped-artifacts
+          echo "Listing files in artifacts/build-ubuntu-latest/"
+          ls -la ./artifacts/build-ubuntu-latest
+          echo "Listing files in artifacts/build-macos-latest/"
+          ls -la ./artifacts/build-macos-latest
+          echo "Listing files in artifacts/build-windows-latest/"
+          ls -la ./artifacts/build-windows-latest
         shell: bash
 
       - name: Create ZIP files
