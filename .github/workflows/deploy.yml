@@ -86,6 +86,9 @@ jobs:
         with:
           name: zipped-artifacts
           path: artifacts/zipped/
+          if-no-files-found: warn
+          compression-level: 6
+          overwrite: false
 
   release:
     needs: zip
