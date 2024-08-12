@@ -123,8 +123,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: List ZIP files
-          path: artifacts/
-          run: ls -la
+          run: pwd
           shell: bash
 
       - name: Upload ZIP files
