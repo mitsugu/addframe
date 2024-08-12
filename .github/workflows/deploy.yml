@@ -123,7 +123,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: List ZIP files
-        run: ls -la ./artifacts
+        run: ls -la
         shell: bash
 
       - name: Upload ZIP files
@@ -131,7 +131,7 @@ jobs:
         with:
           name: zipped-artifacts
           path: artifacts/zipped-artifacts/
-          if-no-files-found: warn
+          if-no-files-found: error
           compression-level: 6
           overwrite: false
 
