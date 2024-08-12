@@ -135,12 +135,15 @@ jobs:
     needs: zip
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: List artifacts directory
         run: |
           echo "Listing artifacts directory:"
-          ls -la ./artifacts
+          ls -la ./artifacts || echo "artifacts directory not found"
           echo "Listing zipped artifacts directory:"
-          ls -la ./artifacts/zipped-artifacts/
+          ls -la ./artifacts/zipped-artifacts/ || echo "zipped-artifacts directory not found"
         shell: bash
 
       - name: Upload ZIP files
