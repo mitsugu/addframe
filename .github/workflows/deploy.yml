@@ -87,7 +87,6 @@ jobs:
           pwd
           echo "Listing files in artifacts/"
           ls -la ./artifacts
-          ls -la ./artifacts/
         shell: bash
 
       - name: Create ZIP files
