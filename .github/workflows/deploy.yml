@@ -72,7 +72,6 @@ jobs:
           name: build-windows-latest
           path: artifacts/windows-latest
 
-
   zip:
     needs: [build-ubuntu-macos, build-windows]
     runs-on: ubuntu-latest
@@ -82,18 +81,12 @@ jobs:
         with:
           path: ./artifacts
 
-      - name: List build artifacts
+      - name: List artifacts directory
         run: |
-          echo "Current directory:"
-          pwd
-          echo "Listing files in artifacts/"
-          ls -la ./artifacts
-          echo "Listing files in artifacts/build-ubuntu-latest/"
-          ls -la ./artifacts/build-ubuntu-latest
-          echo "Listing files in artifacts/build-macos-latest/"
-          ls -la ./artifacts/build-macos-latest
-          echo "Listing files in artifacts/build-windows-latest/"
-          ls -la ./artifacts/build-windows-latest
+          echo "Listing artifacts directory:"
+          ls -la ./artifacts || echo "artifacts directory not found"
+          echo "Listing zipped artifacts directory:"
+          ls -la ./artifacts/zipped-artifacts/ || echo "zipped-artifacts directory not found"
         shell: bash
 
       - name: Create ZIP files
@@ -123,28 +116,21 @@ jobs:
           if [ -f build-windows-latest/addframe.exe ] && [ -f build-windows-latest/addframe.json ]; then
             zip -r zipped-artifacts/addframe-windows.zip build-windows-latest/addframe.exe build-windows-latest/addframe.json
           fi
-        shell: bash
 
-      - name: List ZIP files
-        run: |
-          echo "Listing ZIP files in artifacts/zipped-artifacts/"
-          ls -la artifacts/zipped-artifacts/
+          # ZIPファイルが作成されたか確認
+          echo "Listing ZIP files"
+          ls -la zipped-artifacts/
         shell: bash
 
   release:
     needs: zip
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: List artifacts directory
-        run: |
-          echo "Listing artifacts directory:"
-          ls -la ./artifacts || echo "artifacts directory not found"
-          echo "Listing zipped artifacts directory:"
-          ls -la ./artifacts/zipped-artifacts/ || echo "zipped-artifacts directory not found"
-        shell: bash
+      - name: Download ZIP files
+        uses: actions/download-artifact@v4
+        with:
+          name: zipped-artifacts
+          path: ./artifacts
 
       - name: Upload ZIP files
         uses: actions/upload-artifact@v4
@@ -164,3 +150,4 @@ jobs:
             ./artifacts/zipped-artifacts/addframe-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
