@@ -25,9 +25,9 @@ jobs:
         run: |
           mkdir -p artifacts/${{ matrix.os }}
           if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
-            # Build for Linux
+            # Linux用のビルド
             GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe-linux
-            # Build for Windows
+            # Windows用のビルド
             GOOS=windows GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe.exe
           elif [ ${{ matrix.os }} = 'macos-latest' ]; then
             GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe_amd64
@@ -35,12 +35,15 @@ jobs:
             lipo -create -output artifacts/${{ matrix.os }}/addframe-macos artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
             rm artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
           fi
+        shell: bash
 
       - name: List build artifacts
         run: ls -la artifacts/
+        shell: bash
 
       - name: Copy addframe.json
         run: cp addframe.json artifacts/${{ matrix.os }}/
+        shell: bash
 
       - name: Create ZIP file
         run: |
@@ -50,8 +53,9 @@ jobs:
           elif [ ${{ matrix.os }} = 'macos-latest' ]; then
             zip addframe-macos.zip addframe-macos addframe.json
           elif [ ${{ matrix.os }} = 'windows-latest' ]; then
-            zip addframe-windows.zip addframe.exe addframe.json
+            powershell Compress-Archive -Path addframe.exe, addframe.json -DestinationPath addframe-windows.zip
           fi
+        shell: bash
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
