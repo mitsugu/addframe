@@ -127,6 +127,14 @@ jobs:
     needs: zip
     runs-on: ubuntu-latest
     steps:
+      - name: List artifacts directory
+        run: |
+          echo "Listing artifacts directory:"
+          ls -la ./artifacts
+          echo "Listing zipped artifacts directory:"
+          ls -la ./artifacts/zipped-artifacts/
+        shell: bash
+
       - name: Upload ZIP files
         uses: actions/upload-artifact@v4
         with:
@@ -145,4 +153,3 @@ jobs:
             ./artifacts/zipped-artifacts/addframe-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
