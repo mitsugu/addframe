@@ -7,10 +7,10 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
@@ -24,20 +24,16 @@ jobs:
       - name: Build for ${{ matrix.os }}
         run: |
           mkdir -p artifacts/${{ matrix.os }}
-          case ${{ matrix.os }} in
-            ubuntu-latest)
-              GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe-linux
-              ;;
-            windows-latest)
-              GOOS=windows GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe.exe
-              ;;
-            macos-latest)
-              GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe_amd64
-              GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/addframe_arm64
-              lipo -create -output artifacts/${{ matrix.os }}/addframe-macos artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
-              rm artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
-              ;;
-          esac
+          if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
+            GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe-linux
+          elif [ ${{ matrix.os }} = 'windows-latest' ]; then
+            GOOS=windows GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe.exe
+          elif [ ${{ matrix.os }} = 'macos-latest' ]; then
+            GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe_amd64
+            GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/addframe_arm64
+            lipo -create -output artifacts/${{ matrix.os }}/addframe-macos artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
+            rm artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
+          fi
 
       - name: List build artifacts
         run: ls -la artifacts/
@@ -58,7 +54,7 @@ jobs:
 
   release:
     needs: build
-    runs-on: ubuntu-latest  # リリースジョブはUbuntu上で実行
+    runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
