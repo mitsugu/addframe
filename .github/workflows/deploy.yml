@@ -53,7 +53,7 @@ jobs:
           elif [ ${{ matrix.os }} = 'macos-latest' ]; then
             zip addframe-macos.zip addframe-macos addframe.json
           elif [ ${{ matrix.os }} = 'windows-latest' ]; then
-            powershell Compress-Archive -Path addframe.exe, addframe.json -DestinationPath addframe-windows.zip
+            powershell -Command "Compress-Archive -Path 'addframe.exe', 'addframe.json' -DestinationPath 'addframe-windows.zip'"
           fi
         shell: bash
 
