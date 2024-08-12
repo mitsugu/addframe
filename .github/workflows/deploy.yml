@@ -9,7 +9,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -33,58 +33,60 @@ jobs:
             lipo -create -output artifacts/${{ matrix.os }}/addframe-macos artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
             rm artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
           fi
-          # Verify that the files are created
-          ls -la artifacts/${{ matrix.os }}
         shell: bash
 
       - name: Copy addframe.json
         run: cp addframe.json artifacts/${{ matrix.os }}/
         shell: bash
 
-      - name: Create ZIP file for Linux and macOS
-        if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest' }}
-        run: |
-          cd artifacts/${{ matrix.os }}
-          ls -la # Verify the files exist before zipping
-          if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
-            zip addframe-linux.zip addframe-linux addframe.json
-          elif [ ${{ matrix.os }} = 'macos-latest' ]; then
-            zip addframe-macos.zip addframe-macos addframe.json
-          fi
-        shell: bash
-
-      - name: Create ZIP file for Windows
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          cd artifacts/windows-latest
-          ls
-          powershell -Command "Compress-Archive -Path 'addframe.exe', 'addframe.json' -DestinationPath 'addframe-windows.zip'"
-        shell: pwsh
-
-      - name: Upload artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: addframe-${{ matrix.os }}
-          path: artifacts/${{ matrix.os }}/addframe-${{ matrix.os }}.zip
+          name: build-${{ matrix.os }}
+          path: artifacts/${{ matrix.os }}
 
-  release:
+  zip:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
 
+      - name: Create ZIP file
+        run: |
+          mkdir -p artifacts/zipped
+          cd artifacts
+          zip -r zipped/addframe-linux.zip ubuntu-latest/addframe-linux ubuntu-latest/addframe.json
+          zip -r zipped/addframe-macos.zip macos-latest/addframe-macos macos-latest/addframe.json
+          zip -r zipped/addframe-windows.zip ubuntu-latest/addframe.exe ubuntu-latest/addframe.json
+        shell: bash
+
+      - name: Upload ZIP files
+        uses: actions/upload-artifact@v4
+        with:
+          name: zipped-artifacts
+          path: artifacts/zipped/
+
+  release:
+    needs: zip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download ZIP files
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts/zipped
+
       - name: List downloaded artifacts
-        run: ls -la ./artifacts/
+        run: ls -la ./artifacts/zipped
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/addframe-macos-latest/addframe-macos.zip
-            ./artifacts/addframe-ubuntu-latest/addframe-linux.zip
-            ./artifacts/addframe-windows-latest/addframe-windows.zip
+            ./artifacts/zipped/addframe-linux.zip
+            ./artifacts/zipped/addframe-macos.zip
+            ./artifacts/zipped/addframe-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
