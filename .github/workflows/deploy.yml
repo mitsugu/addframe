@@ -127,6 +127,10 @@ jobs:
         with:
           name: zipped-artifacts
           path: artifacts/zipped-artifacts/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 6
+          overwrite: true
 
   release:
     needs: zip
@@ -140,16 +144,6 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls -R
-
-      - name: Upload ZIP files
-        uses: actions/upload-artifact@v4
-        with:
-          name: zipped-artifacts
-          path: artifacts/zipped-artifacts/
-          if-no-files-found: error
-          retention-days: 90
-          compression-level: 6
-          overwrite: true
 
       - name: Release
         uses: softprops/action-gh-release@v1
