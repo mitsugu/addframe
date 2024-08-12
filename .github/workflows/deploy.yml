@@ -26,24 +26,35 @@ jobs:
           mkdir -p artifacts/${{ matrix.os }}
           case ${{ matrix.os }} in
             ubuntu-latest)
-              go build -o artifacts/${{ matrix.os }}/addframe-linux
+              GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe-linux
               ;;
             windows-latest)
-              go build -o artifacts/${{ matrix.os }}/addframe.exe
+              GOOS=windows GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe.exe
               ;;
             macos-latest)
-              go build -o artifacts/${{ matrix.os }}/addframe
+              GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe_amd64
+              GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/addframe_arm64
+              lipo -create -output artifacts/${{ matrix.os }}/addframe-macos artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
+              rm artifacts/${{ matrix.os }}/addframe_amd64 artifacts/${{ matrix.os }}/addframe_arm64
               ;;
           esac
 
       - name: List build artifacts
         run: ls -la artifacts/
 
+      - name: Copy addframe.json
+        run: cp addframe.json artifacts/${{ matrix.os }}/
+
+      - name: Create ZIP file
+        run: |
+          cd artifacts/${{ matrix.os }}
+          zip addframe-${{ matrix.os }}.zip addframe* addframe.json
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: addframe-${{ matrix.os }}
-          path: artifacts/${{ matrix.os }}/
+          path: artifacts/${{ matrix.os }}/addframe-${{ matrix.os }}.zip
 
   release:
     needs: build
@@ -61,8 +72,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/addframe-macos-latest/addframe
-            ./artifacts/addframe-windows-latest/addframe.exe
-            ./artifacts/addframe-ubuntu-latest/addframe-linux
+            ./artifacts/addframe-macos-latest/addframe-macos.zip
+            ./artifacts/addframe-windows-latest/addframe-windows-latest.zip
+            ./artifacts/addframe-ubuntu-latest/addframe-linux-latest.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
