@@ -64,7 +64,7 @@ jobs:
 
       - name: Create ZIP files
         run: |
-          mkdir -p artifacts/zipped
+          mkdir -p artifacts/zipped-artifacts
           cd artifacts
 
           # List files to confirm existence
@@ -79,16 +79,36 @@ jobs:
 
           # Create ZIP files
           if [ -f build-ubuntu-latest/addframe-linux ] && [ -f build-ubuntu-latest/addframe.json ]; then
-            zip -r zipped/addframe-linux.zip build-ubuntu-latest/addframe-linux build-ubuntu-latest/addframe.json
+            zip -r zipped-artifacts/addframe-linux.zip build-ubuntu-latest/addframe-linux build-ubuntu-latest/addframe.json
           fi
 
           if [ -f build-macos-latest/addframe-macos ] && [ -f build-macos-latest/addframe.json ]; then
-            zip -r zipped/addframe-macos.zip build-macos-latest/addframe-macos build-macos-latest/addframe.json
+            zip -r zipped-artifacts/addframe-macos.zip build-macos-latest/addframe-macos build-macos-latest/addframe.json
           fi
 
           if [ -f build-windows-latest/addframe.exe ] && [ -f build-windows-latest/addframe.json ]; then
-            zip -r zipped/addframe-windows.zip build-windows-latest/addframe.exe build-windows-latest/addframe.json
+            zip -r zipped-artifacts/addframe-windows.zip build-windows-latest/addframe.exe build-windows-latest/addframe.json
           fi
+  shell: bash
+
+- name: Upload ZIP files
+  uses: actions/upload-artifact@v4
+  with:
+    name: zipped-artifacts
+    path: artifacts/zipped-artifacts/
+    if-no-files-found: warn
+    compression-level: 6
+    overwrite: false
+
+- name: Release
+  uses: softprops/action-gh-release@v1
+  with:
+    files: |
+      ./artifacts/zipped-artifacts/addframe-linux.zip
+      ./artifacts/zipped-artifacts/addframe-macos.zip
+      ./artifacts/zipped-artifacts/addframe-windows.zip
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
 
       - name: Upload ZIP files
