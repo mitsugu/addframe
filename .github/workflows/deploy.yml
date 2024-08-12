@@ -92,30 +92,24 @@ jobs:
       - name: Create ZIP files
         run: |
           mkdir -p artifacts/zipped-artifacts
-          cd artifacts
-
-          # List files to confirm existence
-          echo "Listing files in build-ubuntu-latest/"
-          ls -la build-ubuntu-latest
-
-          echo "Listing files in build-macos-latest/"
-          ls -la build-macos-latest
-
-          echo "Listing files in build-windows-latest/"
-          ls -la build-windows-latest
 
           # Create ZIP files
-          if [ -f build-ubuntu-latest/addframe-linux ] && [ -f build-ubuntu-latest/addframe.json ]; then
-            zip -r zipped-artifacts/addframe-linux.zip build-ubuntu-latest/addframe-linux build-ubuntu-latest/addframe.json
+          if [ -f artifacts/ubuntu-latest/addframe-linux ] && [ -f artifacts/ubuntu-latest/addframe.json ]; then
+            zip -r artifacts/zipped-artifacts/addframe-linux.zip artifacts/ubuntu-latest/addframe-linux artifacts/ubuntu-latest/addframe.json
           fi
 
-          if [ -f build-macos-latest/addframe-macos ] && [ -f build-macos-latest/addframe.json ]; then
-            zip -r zipped-artifacts/addframe-macos.zip build-macos-latest/addframe-macos build-macos-latest/addframe.json
+          if [ -f artifacts/macos-latest/addframe-macos ] && [ -f artifacts/macos-latest/addframe.json ]; then
+            zip -r artifacts/zipped-artifacts/addframe-macos.zip artifacts/macos-latest/addframe-macos artifacts/macos-latest/addframe.json
           fi
 
-          if [ -f build-windows-latest/addframe.exe ] && [ -f build-windows-latest/addframe.json ]; then
-            zip -r zipped-artifacts/addframe-windows.zip build-windows-latest/addframe.exe build-windows-latest/addframe.json
+          if [ -f artifacts/windows-latest/addframe.exe ] && [ -f artifacts/windows-latest/addframe.json ]; then
+            zip -r artifacts/zipped-artifacts/addframe-windows.zip artifacts/windows-latest/addframe.exe artifacts/windows-latest/addframe.json
           fi
+        shell: bash
+
+      - name: List ZIP files
+        run: |
+          ls -la artifacts/zipped-artifacts/
         shell: bash
 
   release:
@@ -140,3 +134,4 @@ jobs:
             ./artifacts/zipped-artifacts/addframe-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
