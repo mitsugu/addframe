@@ -117,7 +117,7 @@ jobs:
             zip -r zipped-artifacts/addframe-windows.zip build-windows-latest/addframe.exe build-windows-latest/addframe.json
           fi
 
-          # ZIPファイルが作成されたか確認
+          # Verify ZIP files creation
           echo "Listing ZIP files"
           ls -la zipped-artifacts/
         shell: bash
@@ -127,13 +127,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download ZIP files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: zipped-artifacts
           path: ./artifacts
 
       - name: Upload ZIP files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: zipped-artifacts
           path: artifacts/zipped-artifacts/
