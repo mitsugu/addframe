@@ -123,8 +123,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: List ZIP files
-        run: ls -la
-        shell: bash
+          path: artifacts/
+          run: ls -la
+          shell: bash
 
       - name: Upload ZIP files
         uses: actions/upload-artifact@v4
