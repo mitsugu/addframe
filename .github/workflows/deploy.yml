@@ -149,9 +149,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/zipped-artifacts/addframe-linux.zip
-            ./artifacts/zipped-artifacts/addframe-macos.zip
-            ./artifacts/zipped-artifacts/addframe-windows.zip
+            ./artifacts/addframe-linux.zip
+            ./artifacts/addframe-macos.zip
+            ./artifacts/addframe-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
