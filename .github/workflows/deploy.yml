@@ -59,7 +59,7 @@ jobs:
       - name: Build for Windows
         run: |
           mkdir -p artifacts/windows-latest
-          GOOS=windows GOARCH=amd64 go build -o artifacts/windows-latest/addframe.exe
+          go build -o artifacts/windows-latest/addframe.exe
         shell: pwsh
 
       - name: Copy addframe.json
