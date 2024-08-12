@@ -57,7 +57,7 @@ jobs:
       - name: Create ZIP file for Windows
         if: matrix.os == 'windows-latest'
         run: |
-          cd artifacts/windows-latest
+          cd artifacts\windows-latest
           powershell -Command "Compress-Archive -Path 'addframe.exe', 'addframe.json' -DestinationPath 'addframe-windows.zip'"
         shell: pwsh
 
