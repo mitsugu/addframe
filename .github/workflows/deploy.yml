@@ -89,33 +89,13 @@ jobs:
           if [ -f build-windows-latest/addframe.exe ] && [ -f build-windows-latest/addframe.json ]; then
             zip -r zipped-artifacts/addframe-windows.zip build-windows-latest/addframe.exe build-windows-latest/addframe.json
           fi
-  shell: bash
-
-- name: Upload ZIP files
-  uses: actions/upload-artifact@v4
-  with:
-    name: zipped-artifacts
-    path: artifacts/zipped-artifacts/
-    if-no-files-found: warn
-    compression-level: 6
-    overwrite: false
-
-- name: Release
-  uses: softprops/action-gh-release@v1
-  with:
-    files: |
-      ./artifacts/zipped-artifacts/addframe-linux.zip
-      ./artifacts/zipped-artifacts/addframe-macos.zip
-      ./artifacts/zipped-artifacts/addframe-windows.zip
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
 
       - name: Upload ZIP files
         uses: actions/upload-artifact@v4
         with:
           name: zipped-artifacts
-          path: artifacts/zipped/
+          path: artifacts/zipped-artifacts/
           if-no-files-found: warn
           compression-level: 6
           overwrite: false
@@ -127,17 +107,18 @@ jobs:
       - name: Download ZIP files
         uses: actions/download-artifact@v4
         with:
-          path: ./artifacts/zipped
+          path: ./artifacts/zipped-artifacts
 
       - name: List downloaded artifacts
-        run: ls -la ./artifacts/zipped
+        run: ls -la ./artifacts/zipped-artifacts
+        shell: bash
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/zipped/addframe-linux.zip
-            ./artifacts/zipped/addframe-macos.zip
-            ./artifacts/zipped/addframe-windows.zip
+            ./artifacts/zipped-artifacts/addframe-linux.zip
+            ./artifacts/zipped-artifacts/addframe-macos.zip
+            ./artifacts/zipped-artifacts/addframe-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
