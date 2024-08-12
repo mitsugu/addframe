@@ -6,10 +6,10 @@ on:
       - 'v*.*.*'
 
 jobs:
-  build:
+  build-ubuntu-macos:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -26,7 +26,6 @@ jobs:
           mkdir -p artifacts/${{ matrix.os }}
           if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
             GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe-linux
-            GOOS=windows GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe.exe
           elif [ ${{ matrix.os }} = 'macos-latest' ]; then
             GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/addframe_amd64
             GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/addframe_arm64
@@ -45,8 +44,36 @@ jobs:
           name: build-${{ matrix.os }}
           path: artifacts/${{ matrix.os }}
 
+  build-windows:
+    runs-on: windows-latest
+    needs: build-ubuntu-macos
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.*'
+
+      - name: Build for Windows
+        run: |
+          mkdir -p artifacts/windows-latest
+          GOOS=windows GOARCH=amd64 go build -o artifacts/windows-latest/addframe.exe
+        shell: pwsh
+
+      - name: Copy addframe.json
+        run: Copy-Item -Path addframe.json -Destination artifacts/windows-latest/
+        shell: pwsh
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-windows-latest
+          path: artifacts/windows-latest
+
   zip:
-    needs: build
+    needs: [build-ubuntu-macos, build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Download build artifacts
@@ -91,6 +118,10 @@ jobs:
           fi
         shell: bash
 
+  release:
+    needs: zip
+    runs-on: ubuntu-latest
+    steps:
       - name: Upload ZIP files
         uses: actions/upload-artifact@v4
         with:
@@ -99,19 +130,6 @@ jobs:
           if-no-files-found: warn
           compression-level: 6
           overwrite: false
-
-  release:
-    needs: zip
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download ZIP files
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts/zipped-artifacts
-
-      - name: List downloaded artifacts
-        run: ls -la ./artifacts/zipped-artifacts
-        shell: bash
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -122,4 +140,3 @@ jobs:
             ./artifacts/zipped-artifacts/addframe-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
