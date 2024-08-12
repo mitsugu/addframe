@@ -54,6 +54,10 @@ jobs:
         with:
           path: ./artifacts
 
+      - name: List build artifacts
+        run: ls -la ./artifacts
+        shell: bash
+
       - name: Create ZIP file
         run: |
           mkdir -p artifacts/zipped
