@@ -23,27 +23,27 @@ jobs:
 
       - name: Build for ${{ matrix.os }}
         run: |
+          mkdir -p artifacts
           case ${{ matrix.os }} in
             ubuntu-latest)
-              go build -o addframe-linux
+              go build -o artifacts/addframe-linux
               ;;
             windows-latest)
-              go build -o addframe.exe
+              go build -o artifacts/addframe.exe
               ;;
             macos-latest)
-              go build -o addframe
+              go build -o artifacts/addframe
               ;;
           esac
 
       - name: List build artifacts
-        run: ls -la
+        run: ls -la artifacts/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: addframe-${{ matrix.os }}
-          path: |
-            ${{ matrix.os == 'windows-latest' && 'addframe.exe' || (matrix.os == 'ubuntu-latest' && 'addframe-linux' || 'addframe') }}
+          path: artifacts/${{ matrix.os == 'windows-latest' && 'addframe.exe' || (matrix.os == 'ubuntu-latest' && 'addframe-linux' || 'addframe') }}
 
   release:
     needs: build
