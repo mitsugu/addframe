@@ -35,12 +35,12 @@ jobs:
               ;;
           esac
 
-      - name: Upload artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: addframe-${{ matrix.os }}
           path: |
-            ${{ matrix.os == 'windows-latest' && 'addframe.exe' || 'addframe' }}
+            ${{ matrix.os == 'windows-latest' && 'addframe.exe' || (matrix.os == 'ubuntu-latest' && 'addframe-linux' || 'addframe') }}
 
   release:
     needs: build
@@ -54,6 +54,9 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./artifacts/addframe-*
+          files: |
+            ./artifacts/addframe-linux
+            ./artifacts/addframe.exe
+            ./artifacts/addframe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
