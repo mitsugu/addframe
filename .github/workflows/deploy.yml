@@ -95,25 +95,25 @@ jobs:
 
           # List files to confirm their existence before creating ZIP files
           echo "Listing files in build-ubuntu-latest/"
-          ls -la artifacts/ubuntu-latest
+          ls -la artifacts/build-ubuntu-latest
 
           echo "Listing files in build-macos-latest/"
-          ls -la artifacts/macos-latest
+          ls -la artifacts/build-macos-latest
 
           echo "Listing files in build-windows-latest/"
-          ls -la artifacts/windows-latest
+          ls -la artifacts/build-windows-latest
 
           # Create ZIP files
-          if [ -f artifacts/ubuntu-latest/addframe-linux ] && [ -f artifacts/ubuntu-latest/addframe.json ]; then
-            zip -r artifacts/zipped-artifacts/addframe-linux.zip artifacts/ubuntu-latest/addframe-linux artifacts/ubuntu-latest/addframe.json
+          if [ -f artifacts/build-ubuntu-latest/addframe-linux ] && [ -f artifacts/build-ubuntu-latest/addframe.json ]; then
+            zip -r artifacts/zipped-artifacts/addframe-linux.zip artifacts/build-ubuntu-latest/addframe-linux artifacts/build-ubuntu-latest/addframe.json
           fi
 
-          if [ -f artifacts/macos-latest/addframe-macos ] && [ -f artifacts/macos-latest/addframe.json ]; then
-            zip -r artifacts/zipped-artifacts/addframe-macos.zip artifacts/macos-latest/addframe-macos artifacts/macos-latest/addframe.json
+          if [ -f artifacts/build-macos-latest/addframe-macos ] && [ -f artifacts/build-macos-latest/addframe.json ]; then
+            zip -r artifacts/zipped-artifacts/addframe-macos.zip artifacts/build-macos-latest/addframe-macos artifacts/build-macos-latest/addframe.json
           fi
 
-          if [ -f artifacts/windows-latest/addframe.exe ] && [ -f artifacts/windows-latest/addframe.json ]; then
-            zip -r artifacts/zipped-artifacts/addframe-windows.zip artifacts/windows-latest/addframe.exe artifacts/windows-latest/addframe.json
+          if [ -f artifacts/build-windows-latest/addframe.exe ] && [ -f artifacts/build-windows-latest/addframe.json ]; then
+            zip -r artifacts/zipped-artifacts/addframe-windows.zip artifacts/build-windows-latest/addframe.exe artifacts/build-windows-latest/addframe.json
           fi
         shell: bash
 
