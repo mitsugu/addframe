@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	//"log"
 	"os"
 	"os/exec"
 	"io"
@@ -130,9 +131,18 @@ func getOrientation(data string) (string, error) {
 }
 
 func createFrame(inputPath string, outputPath string) error {
-	width := config.Length
-	height := (exifdata.Height * config.Length)/exifdata.Width
-	rotationAngle := exifdata.Orientation
+	var width 			int
+	var height			int
+	var rotationAngle	int
+	if exifdata.Width > exifdata.Height {
+		width	= config.Length
+		height	= (exifdata.Height * config.Length)/exifdata.Width
+		rotationAngle = exifdata.Orientation
+	} else {
+		width	= (exifdata.Width * config.Length)/exifdata.Height
+		height	= config.Length
+		rotationAngle = exifdata.Orientation
+	}
 
 	switch rotationAngle {
 	case 90, 270:
@@ -183,9 +193,18 @@ func createFrame(inputPath string, outputPath string) error {
 }
 
 func rotateImage(inputPath string) error {
-	width := config.Length
-	height := (exifdata.Height * config.Length)/exifdata.Width
-	rotationAngle := exifdata.Orientation
+	var width 			int
+	var height			int
+	var rotationAngle	int
+	if exifdata.Width > exifdata.Height {
+		width	= config.Length
+		height	= (exifdata.Height * config.Length)/exifdata.Width
+		rotationAngle = exifdata.Orientation
+	} else {
+		width	= (exifdata.Width * config.Length)/exifdata.Height
+		height	= config.Length
+		rotationAngle = exifdata.Orientation
+	}
 
 	cmd := exec.Command(config.Imagemagick, inputPath, "-resize", fmt.Sprintf("%dx%d", width, height), "-rotate", fmt.Sprintf("+%d",rotationAngle), "-orient", "undefined", "-quality", "100", "tmp2.webp")
 	return cmd.Run()
@@ -233,7 +252,7 @@ func main() {
 	app := &cli.App{
 		Name:  "addframe",
 		Usage: "Adds a frame to an image",
-		Version: "v1.0.0",
+		Version: "v1.0.1",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "config",
