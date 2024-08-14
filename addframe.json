@@ -7,6 +7,6 @@
 	"font": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
 	"fontColor": "white",
 	"frameColor": "#3f3f3f",
-	"imagemagick": "path/to/bin/magick",
+	"imagemagick": "./imagemagick/magick",
 	"exiftool": "/bin/exiftool"
 }

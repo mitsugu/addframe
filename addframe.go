@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	//"log"
 	"os"
 	"os/exec"
 	"io"
@@ -252,22 +251,25 @@ func main() {
 	app := &cli.App{
 		Name:  "addframe",
 		Usage: "Adds a frame to an image",
-		Version: "v1.0.1",
+		Version: "v1.1.0",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "config",
 				Aliases:  []string{"c"},
 				Usage: "Load configuration from `FILE`",
+				Value: "addframe.json",
 			},
 			&cli.StringFlag{
 				Name:  "input",
 				Aliases:  []string{"i"},
 				Usage: "Input image file path",
+				Required: true,
 			},
 			&cli.StringFlag{
 				Name:  "output",
 				Aliases:  []string{"o"},
 				Usage: "Output image file path",
+				Required: true,
 			},
 		},
 		Action: func(c *cli.Context) error {
