@@ -1,6 +1,6 @@
 module github.com/mitsugu/addframe
 
-go 1.22.5
+go 1.23.0
 
 require github.com/urfave/cli/v2 v2.27.4
 
