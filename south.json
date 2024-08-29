@@ -1,6 +1,6 @@
 {
 	"path": {
-		"imagemagick": "/path/to//magick",
+		"imagemagick": "/path/to/magick",
 		"exiftool": "/bin/exiftool"
 	},
 	"length": 1280,

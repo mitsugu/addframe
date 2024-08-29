@@ -19,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22.*'
+          go-version: '1.23.*'
 
       - name: Build for ${{ matrix.os }}
         run: |
@@ -35,7 +35,11 @@ jobs:
         shell: bash
 
       - name: Copy addframe.json
-        run: cp addframe.json artifacts/${{ matrix.os }}/
+        run: |
+          cp addframe.json artifacts/${{ matrix.os }}/
+          cp south.json artifacts/${{ matrix.os }}/
+          cp southeast.json artifacts/${{ matrix.os }}/
+          cp southwest.json artifacts/${{ matrix.os }}/
         shell: bash
 
       - name: Upload build artifacts
@@ -54,7 +58,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22.*'
+          go-version: '1.23.*'
 
       - name: Build for Windows
         run: |
@@ -63,7 +67,11 @@ jobs:
         shell: pwsh
 
       - name: Copy addframe.json
-        run: Copy-Item -Path addframe.json -Destination artifacts/windows-latest/
+        run: |
+          Copy-Item -Path addframe.json -Destination artifacts/windows-latest/
+          Copy-Item -Path south.json -Destination artifacts/windows-latest/
+          Copy-Item -Path southeast.json -Destination artifacts/windows-latest/
+          Copy-Item -Path southwest.json -Destination artifacts/windows-latest/
         shell: pwsh
 
       - name: Upload build artifacts
@@ -105,17 +113,11 @@ jobs:
           ls -la build-windows-latest
 
           # Create ZIP files
-          if [ -f build-ubuntu-latest/addframe-linux ] && [ -f build-ubuntu-latest/addframe.json ]; then
-            zip -r zipped-artifacts/addframe-linux.zip build-ubuntu-latest/addframe-linux build-ubuntu-latest/addframe.json
-          fi
+          zip -r zipped-artifacts/addframe-linux.zip build-ubuntu-latest/addframe-linux build-ubuntu-latest/addframe.json build-ubuntu-latest/south.json build-ubuntu-latest/southeast.json build-ubuntu-latest/southwest.json
 
-          if [ -f build-macos-latest/addframe-macos ] && [ -f build-macos-latest/addframe.json ]; then
-            zip -r zipped-artifacts/addframe-macos.zip build-macos-latest/addframe-macos build-macos-latest/addframe.json
-          fi
+          zip -r zipped-artifacts/addframe-macos.zip build-macos-latest/addframe-macos build-macos-latest/addframe.json build-macos-latest/south.json build-macos-latest/southeast.json build-macos-latest/southwest.json
 
-          if [ -f build-windows-latest/addframe.exe ] && [ -f build-windows-latest/addframe.json ]; then
-            zip -r zipped-artifacts/addframe-windows.zip build-windows-latest/addframe.exe build-windows-latest/addframe.json
-          fi
+          zip -r zipped-artifacts/addframe-windows.zip build-windows-latest/addframe.exe build-windows-latest/addframe.json build-windows-latest/south.json build-windows-latest/southeast.json build-windows-latest/southwest.json
 
           # Verify ZIP files creation
           echo "Listing ZIP files"

@@ -1,6 +1,6 @@
 {
 	"path": {
-		"imagemagick": "/path/to//magick",
+		"imagemagick": "/path/to/magick",
 		"exiftool": "/bin/exiftool"
 	},
 	"length": 1280,
@@ -12,8 +12,8 @@
 		"color": "#3f3f3f"
 	},
 	"text": {
-		"direction": "South",
-		"margin": 0,
+		"direction": "SouthWest",
+		"margin": 48,
 		"dpi": 96,
 		"element": [{
 			"font": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",

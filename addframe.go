@@ -3,28 +3,44 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
-	"io"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"text/template"
 
 	"github.com/urfave/cli/v2"
 )
 
 type Config struct {
-	Length      int    `json:"length"`
-	Top         int    `json:"top"`
-	Left        int    `json:"left"`
-	Right       int    `json:"right"`
-	Bottom      int    `json:"bottom"`
-	FrameColor  string `json:"frameColor"`
-	Font        string `json:"font"`
-	FontColor   string `json:"fontColor"`
-	Imagemagick string `json:"imagemagick"`
-	Exiftool    string `json:"exiftool"`
+	Path struct {
+		Imagemagick string `json:"imagemagick"`
+		Exiftool    string `json:"exiftool"`
+	} `json:"path"`
+	Length int `json:"length"`
+	Frame  struct {
+		Top    int    `json:"top"`
+		Left   int    `json:"left"`
+		Right  int    `json:"right"`
+		Bottom int    `json:"bottom"`
+		Color  string `json:"color"`
+	} `json:"frame"`
+	Text struct {
+		Direction string `json:"direction"`
+		Margin    int    `json:"margin"`
+		Dpi       int    `json:"dpi"`
+		Element   []struct {
+			Font         string `json:"font"`
+			Color        string `json:"color"`
+			Size         int    `json:"size"`
+			Margintop    int    `json:"margintop"`
+			Marginbottom int    `json:"marginbottom"`
+		} `json:"element"`
+	} `json:"text"`
 }
+
 func (c *Config) loadConfig(configPath string) error {
 	file, err := os.Open(configPath)
 	if err != nil {
@@ -40,34 +56,36 @@ func (c *Config) loadConfig(configPath string) error {
 	if c.Length <= 0 {
 		return fmt.Errorf("invalid configuration: Length must be greater than 0")
 	}
-	if c.Imagemagick == "" {
+	if c.Path.Imagemagick == "" {
 		return fmt.Errorf("invalid configuration: Imagemagick path must be specified")
 	}
-	if c.Exiftool == "" {
+	if c.Path.Exiftool == "" {
 		return fmt.Errorf("invalid configuration: Exiftool path must be specified")
 	}
 
 	return nil
 }
+
 var config Config
 
 type ExifData struct {
-	Lens        string
-	Fnumber     string
+	Lens         string
+	Fnumber      string
 	Shutterspeed string
-	ISO         string
-	Orientation int
-	Author      string
-	Copyright   string
-	Make        string
-	Model       string
-	LensID      string
-	LensModel   string
-	Width       int
-	Height      int
+	ISO          string
+	Orientation  int
+	Author       string
+	Copyright    string
+	Make         string
+	Model        string
+	LensID       string
+	LensModel    string
+	Width        int
+	Height       int
 }
+
 func (e *ExifData) load(inputPath string) error {
-	cmd := exec.Command(config.Exiftool,
+	cmd := exec.Command(config.Path.Exiftool,
 		"-Lens", "-FNumber", "-ShutterSpeed", "-ISO", "-Orientation",
 		"-Author", "-Copyright", "-Make", "-Model", "-LensID", "-LensModel",
 		"-ImageWidth", "-ImageHeight", "-s", "-T", inputPath)
@@ -86,7 +104,7 @@ func (e *ExifData) load(inputPath string) error {
 	if err != nil {
 		return err
 	}
-	e.Orientation, _ =strconv.Atoi(strings.TrimSpace(tmpOrientation))
+	e.Orientation, _ = strconv.Atoi(strings.TrimSpace(tmpOrientation))
 	e.Author = strings.TrimSpace(lines[5])
 	e.Copyright = strings.TrimSpace(lines[6])
 	e.Make = strings.TrimSpace(lines[7])
@@ -103,6 +121,7 @@ func (e *ExifData) load(inputPath string) error {
 
 	return nil
 }
+
 var exifdata ExifData
 
 func getOrientation(data string) (string, error) {
@@ -130,16 +149,16 @@ func getOrientation(data string) (string, error) {
 }
 
 func createFrame(inputPath string, outputPath string) error {
-	var width 			int
-	var height			int
-	var rotationAngle	int
+	var width int
+	var height int
+	var rotationAngle int
 	if exifdata.Width > exifdata.Height {
-		width	= config.Length
-		height	= (exifdata.Height * config.Length)/exifdata.Width
+		width = config.Length
+		height = (exifdata.Height * config.Length) / exifdata.Width
 		rotationAngle = exifdata.Orientation
 	} else {
-		width	= (exifdata.Width * config.Length)/exifdata.Height
-		height	= config.Length
+		width = (exifdata.Width * config.Length) / exifdata.Height
+		height = config.Length
 		rotationAngle = exifdata.Orientation
 	}
 
@@ -148,12 +167,17 @@ func createFrame(inputPath string, outputPath string) error {
 		width, height = height, width
 	}
 
-	w := width + config.Left + config.Right
-	h := height + config.Top + config.Bottom
+	w := width + config.Frame.Left + config.Frame.Right
+	h := height + config.Frame.Top
+	for i := 0 ; i < 3 ; i++ {
+		h += config.Text.Element[i].Margintop
+		h += config.Text.Element[i].Size * config.Text.Dpi / 72
+		h += config.Text.Element[i].Marginbottom
+	}
 
 	cmdArgs := []string{
 		"-size", fmt.Sprintf("%dx%d", w, h),
-		"xc:"+config.FrameColor,
+		"xc:" + config.Frame.Color,
 	}
 	lens := ""
 	if exifdata.Lens != "" && exifdata.Lens != "-" {
@@ -163,19 +187,20 @@ func createFrame(inputPath string, outputPath string) error {
 	} else if exifdata.LensModel != "" && exifdata.LensModel != "-" {
 		lens = exifdata.LensModel
 	}
-	cmdArgs = append(cmdArgs, "-pointsize", "24", "-font", config.Font, "-fill", config.FontColor, "-gravity", "south")
-	cmdArgs = append(cmdArgs, "-annotate", "+0+72", exifdata.Copyright)
-	cmdArgs = append(cmdArgs, "-pointsize", "24", "-font", config.Font, "-fill", config.FontColor, "-gravity", "south", "-annotate", "+0+48", fmt.Sprintf("%s / %s", exifdata.Model, exifdata.Make))
-	cmdArgs = append(cmdArgs, "-pointsize", "16", "-font", config.Font, "-fill", config.FontColor, "-gravity", "south", "-annotate", "+0+24", fmt.Sprintf("%s f%s %ss ISO%s", lens, exifdata.Fnumber, exifdata.Shutterspeed, exifdata.ISO))
 
-	/*
-	if rotationAngle > 0 {
-		cmdArgs = append(cmdArgs, "-rotate", fmt.Sprintf("%d", rotationAngle))
-	}
-	*/
+	dpi := strconv.Itoa(config.Text.Dpi)
+	x := "+" + strconv.Itoa(config.Text.Margin)
+	y := "+" + strconv.Itoa(config.Text.Element[0].Size + config.Text.Element[0].Marginbottom + config.Text.Element[1].Margintop + config.Text.Element[1].Size + config.Text.Element[1].Marginbottom + config.Text.Element[2].Margintop + config.Text.Element[2].Size + config.Text.Element[2].Marginbottom)
+	cmdArgs = append(cmdArgs, "-density", dpi, "-pointsize", "24", "-font", config.Text.Element[0].Font, "-fill", config.Text.Element[0].Color, "-gravity", config.Text.Direction, "-annotate", x+y, exifdata.Copyright)
+
+	y = "+" + strconv.Itoa(config.Text.Element[1].Size + config.Text.Element[1].Marginbottom + config.Text.Element[2].Margintop + config.Text.Element[2].Size + config.Text.Element[2].Marginbottom)
+	cmdArgs = append(cmdArgs, "-density", dpi, "-pointsize", strconv.Itoa(config.Text.Element[1].Size), "-font", config.Text.Element[1].Font, "-fill", config.Text.Element[1].Color, "-gravity", config.Text.Direction, "-annotate", x+y, fmt.Sprintf("%s / %s", exifdata.Model, exifdata.Make))
+
+	y = "+" + strconv.Itoa(config.Text.Element[2].Size + config.Text.Element[2].Marginbottom)
+	cmdArgs = append(cmdArgs, "-density", dpi, "-pointsize", strconv.Itoa(config.Text.Element[2].Size), "-font", config.Text.Element[2].Font, "-fill", config.Text.Element[2].Color, "-gravity", config.Text.Direction, "-annotate", x+y, fmt.Sprintf("%s f%s %ss ISO%s", lens, exifdata.Fnumber, exifdata.Shutterspeed, exifdata.ISO))
+
 	cmdArgs = append(cmdArgs, "-quality", "100", "tmp1.webp")
-
-	cmd := exec.Command(config.Imagemagick, cmdArgs...)
+	cmd := exec.Command(config.Path.Imagemagick, cmdArgs...)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -192,20 +217,20 @@ func createFrame(inputPath string, outputPath string) error {
 }
 
 func rotateImage(inputPath string) error {
-	var width 			int
-	var height			int
-	var rotationAngle	int
+	var width int
+	var height int
+	var rotationAngle int
 	if exifdata.Width > exifdata.Height {
-		width	= config.Length
-		height	= (exifdata.Height * config.Length)/exifdata.Width
+		width = config.Length
+		height = (exifdata.Height * config.Length) / exifdata.Width
 		rotationAngle = exifdata.Orientation
 	} else {
-		width	= (exifdata.Width * config.Length)/exifdata.Height
-		height	= config.Length
+		width = (exifdata.Width * config.Length) / exifdata.Height
+		height = config.Length
 		rotationAngle = exifdata.Orientation
 	}
 
-	cmd := exec.Command(config.Imagemagick, inputPath, "-resize", fmt.Sprintf("%dx%d", width, height), "-rotate", fmt.Sprintf("+%d",rotationAngle), "-orient", "undefined", "-quality", "100", "tmp2.webp")
+	cmd := exec.Command(config.Path.Imagemagick, inputPath, "-resize", fmt.Sprintf("%dx%d", width, height), "-rotate", fmt.Sprintf("+%d", rotationAngle), "-orient", "undefined", "-quality", "100", "tmp2.webp")
 	return cmd.Run()
 }
 
@@ -220,7 +245,7 @@ func mergeImage(inputPath, outputPath string) error {
 		return nil
 	}
 
-	cmd := exec.Command(config.Imagemagick, "tmp1.webp", "tmp2.webp", "-gravity", "north", "-geometry", "+0+32", "-compose", "over", "-composite", outputPath)
+	cmd := exec.Command(config.Path.Imagemagick, "tmp1.webp", "tmp2.webp", "-gravity", "north", "-geometry", "+0+32", "-compose", "over", "-composite", outputPath)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -248,27 +273,52 @@ func copyFile(src, dst string) error {
 }
 
 func main() {
+	funcMap := template.FuncMap{
+		"join": func(elements []string, sep string) string {
+			return strings.Join(elements, sep)
+		},
+	}
+
+	cli.AppHelpTemplate = `NAME:
+   {{.Name}} - {{.Usage}}
+
+VERSION:
+   {{.Version}}
+
+USAGE:
+   {{.UsageText}}
+
+ARGUMENTS:
+   {{range .Flags}}
+   {{- with $names := .Names }}{{join $names ", "}}{{end}}
+   {{- if .Aliases}} (short: {{join .Aliases ", "}}){{end}}
+   :
+       {{.Usage}}
+   {{end}}
+`
+
 	app := &cli.App{
-		Name:  "addframe",
-		Usage: "Adds a frame to an image",
-		Version: "v1.1.0",
+		Name:    "addframe",
+		Usage:   "Add a frame to an image",
+		UsageText: "addframe [-c configuration_file_path] -i <source_file_path> -o <destination_file_path>",
+		Version: "v1.2.0",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:  "config",
-				Aliases:  []string{"c"},
-				Usage: "Load configuration from `FILE`",
-				Value: "addframe.json",
+				Name:    "config",
+				Aliases: []string{"c"},
+				Usage:   "Load configuration from configuration_file_path",
+				Value:   "addframe.json in the current directory",
 			},
 			&cli.StringFlag{
-				Name:  "input",
+				Name:     "input",
 				Aliases:  []string{"i"},
-				Usage: "Input image file path",
+				Usage:    "Input image file path",
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name:  "output",
+				Name:     "output",
 				Aliases:  []string{"o"},
-				Usage: "Output image file path",
+				Usage:    "Output image file path",
 				Required: true,
 			},
 		},
@@ -301,6 +351,14 @@ func main() {
 			fmt.Println("Done!!")
 			return nil
 		},
+	}
+
+	cli.HelpPrinter = func(w io.Writer, templ string, data interface{}) {
+		t := template.Must(template.New("help").Funcs(funcMap).Parse(templ))
+		err := t.Execute(w, data)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	err := app.Run(os.Args)
