@@ -137,3 +137,5 @@ Path to the resulting file after adding frames.
 
 ## comment
 enjoy!! 😀
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/mitsugu/addframe.svg)](https://pkg.go.dev/github.com/mitsugu/addframe)

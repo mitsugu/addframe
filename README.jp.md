@@ -142,3 +142,5 @@ addframe [-c congiguration_file_path] <-i input_file_path> <-o output_file_path>
 
 ## 最後に
 楽しんで！！ 😀
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/mitsugu/addframe.svg)](https://pkg.go.dev/github.com/mitsugu/addframe)
