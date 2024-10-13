@@ -301,7 +301,7 @@ ARGUMENTS:
 		Name:    "addframe",
 		Usage:   "Add a frame to an image",
 		UsageText: "addframe [-c configuration_file_path] -i <source_file_path> -o <destination_file_path>",
-		Version: "v1.2.1",
+		Version: "v1.2.2",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config",
